@@ -1,0 +1,11 @@
+commit cf86eb30938e89737dbf25e3895ce03ca0084cc8 (HEAD -> master)
+Author: TheWandererr <kartem2013@yandex.ru>
+Date:   Tue Feb 12 11:46:28 2019 +0300
+
+    add status.txt
+
+commit a11b1a8730ebf10d0a8b8b563fc7dd62312549f5
+Author: TheWandererr <kartem2013@yandex.ru>
+Date:   Tue Feb 12 11:43:55 2019 +0300
+
+    add .gitignore
