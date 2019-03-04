@@ -1,0 +1,427 @@
+/*Global*/
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+/*Buttons*/
+.count_like{
+    border: none;
+    outline: none;
+    background: #e5e5e5;
+    font-size: 16px;
+    padding: 5px 0 0 0;
+}
+.btn-like {
+    font-family: "Comic Sans MS, Arial";
+    border: tomato 2px solid;
+    text-align: center;
+    background: coral;
+    border-radius: 3px;
+    box-shadow: 0 10px 20px -8px rgb(255, 136, 67);
+    font-size: 16px;
+    height: 30px;
+    cursor: pointer;
+    outline: none;
+    color: #ffffff;
+    text-decoration: none;
+    -webkit-transition: 0.2s ease;
+    transition: 0.2s ease;
+}
+.btn-like:hover {
+    transform: translateY(-2px);
+    }
+.btn-like .fa {
+    text-align:center;
+}
+.more_button{
+    font-size: 16px;
+    font-weight: lighter;
+    outline: none;
+    margin-top: 10px;
+    height: 38px;
+    background: coral;
+    color: azure;
+    width: 60%;
+    cursor: pointer;
+    border: none;
+}
+.more_button:hover, .add_button:hover, .apply_button:hover {
+    border: tomato 2px solid;
+    }
+.add_button{
+    margin-top: 10px;
+    height: 38px;
+    background: coral;
+    border: 0;
+    color: azure;
+    width: 65.5%;
+    cursor: pointer;
+    outline: none;
+}
+.apply_button {
+    outline: none;
+    margin-top: 20px;
+    height: 38px;
+    background: coral;
+    border: 0;
+    color: azure;
+    width: 97%;
+    cursor: pointer;
+}
+.change_button {
+    outline: none;
+    border-radius: 3px;
+    box-shadow: 0 10px 20px -8px #35424a;
+    width: auto;
+    cursor: pointer;
+    height: 30px;
+    text-decoration: none;
+    text-align: center;
+    font-family: "Comic Sans MS, Arial";
+    font-size: 16px;/*
+    background-color: #35424a;
+    border: 2px solid #777777;
+    color: azure;*/
+    color: #35424a;
+    background-color: #cccccc;
+    border: 2px solid #35424a;
+    -webkit-transition: 0.2s ease;
+    transition: 0.2s ease;
+}
+.change_button:hover {
+    transform: translateY(-2px);
+    width: auto;
+    height: 30px;
+    text-decoration: none;
+    text-align: center;
+    color: coral;
+    background-color: #35424a;
+}
+.delete_button {
+    outline: none;
+    border-radius: 3px;
+    box-shadow: 0 10px 20px -8px #35424a;
+    width: auto;
+    cursor: pointer;
+    height: 30px;
+    text-decoration: none;
+    text-align: center;
+    color: #35424a;
+    background-color: #cccccc;
+    border: 2px solid #35424a;
+    font-family: "Comic Sans MS, Arial";
+    font-size: 16px;
+    -webkit-transition: 0.2s ease;
+    transition: 0.2s ease;
+}
+.delete_button:hover {
+    transform: translateY(-2px);
+    width: auto;
+    height: 30px;
+    text-decoration: none;
+    text-align: center;
+    color: azure;
+    background-color: coral;
+}
+.apply_button, .more_button, .add_button{
+    font-family: Corbel;
+    font-size: 18px;
+}
+
+/*Header*/
+header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: #35424a;
+    color: #ffffff;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: coral 3px solid;
+}
+
+header a {
+
+    color: #ffffff;
+    background: #35424a;
+    font-size: 16px;
+    text-decoration: none;
+}
+header li {
+    float: left;
+    display: inline;
+    padding: 0 20px 0 20px;
+}
+header #logo {
+    float: left;
+}
+header #logo h1 {
+    margin: 0;
+    font-size: 35px;
+}
+header nav {
+    float: right;
+    margin-top: 15px;
+}
+header .highlight, header .line a {
+    color: coral;
+    font-weight: bold;
+}
+header .line a:hover {
+    color: #cccccc;
+    font-weight: bold;
+}
+
+/*Show*/
+#show {
+    min-height: 320px;
+    background: url('images/camera3.jpg') no-repeat 0 -320px;
+    color: azure;
+    text-align: center;
+}
+#show h1 {
+    font-size: 80px;
+    margin-top: 110px;
+}
+#show .highlight1, .highlight3, .highlight5 {
+    color: coral;
+    font-weight: bold;
+}
+#show .highlight2, .highlight4, .highlight6 {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/*Line*/
+#line {
+    background: #35424a;
+    min-height: 60px;
+    border-top: coral 3px solid;
+    text-align: center;
+    padding: 10px;
+}
+
+/*Filter*/
+.dark{
+    margin-top: 2%;
+    padding: 15px;
+    background: #e5e5e5;
+    color: #35424a;
+}
+aside#sidebar{
+    float: right;
+    width: 30%;
+    margin-top: 35px;
+    }
+aside#sidebar .filter input{
+    width: 90%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+aside#sidebar label{
+    font-family: Ava;
+    font-weight: lighter;
+}
+
+
+/*Photos*/
+article#main-col{
+    margin-top: 40px;
+    float: left;
+    width: 65%;
+}
+article img{
+    width: 80%;
+    border: #35424a solid 1px;
+}
+ul#photos li{
+    list-style: none;
+    padding: 20px 0 20px 20px;
+    border-left: #cccccc solid 1px;
+    border-top: #cccccc solid 1px;
+    border-bottom: #cccccc solid 1px;
+    border-right: #35424a 3px solid;
+    border-right-style:double;
+    margin-bottom: 40px;
+    background: #e5e5e5;
+}
+ul#photos h3{
+    max-width: 100%;
+    display: inline;
+    padding: 0 0 0 5px;
+    font-style: italic;
+    font-weight: normal;
+    font-family: Ava;
+}
+ul#photos p{
+
+    color: #35424a;
+    padding: 5px;
+    max-width: 100%;
+    border-bottom-style: double;
+    border-top-style: double;
+}
+ul#photos button{
+    text-align-all: center;
+    display: inline;
+}
+ul#photos li .bottom_line{
+    width: 90%;
+}
+article .more{
+    text-align: center;
+    margin-top: 20px;
+}
+
+/*Footer*/
+footer{
+    margin-top: 40px;
+    background: #35424a;
+    color: #ffffff;
+    text-align: center;
+    padding: 20px;
+}
+footer p{
+    display: inline;
+}
+
+
+
+/*Media*/
+@media (max-width: 768px) {
+   header #logo,
+   header nav,
+   header nav li,
+   aside#sidebar,
+   #line button{
+       float: none;
+       text-align: center;
+       width: 100%;
+   }
+    article#main-col{
+        float: none;
+        width: 100%;
+    }
+    header{
+    padding-bottom: 25px;
+       }
+    #show h1{
+        margin-top: 50px;
+        font-size: 60px;
+    }
+    ul#photos button{
+        display: inline;
+        margin: 0;
+        font-size: 14px;
+        height: 25px;
+        width: auto;
+    }
+    ul#photos p{
+        text-align: left;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 400px) {
+    header #logo,
+    header nav,
+    header nav li,
+    aside#sidebar{
+        float: none;
+        text-align: center;
+        width: 100%;
+        font-size: 12px;
+    }
+    aside#sidebar .apply_button {
+        float: none;
+        text-align: center;
+        width: 100%;
+        font-size: 14px;
+    }
+    .more_button{
+        font-size: 14px;
+    }
+    #show {
+        min-height: 180px;
+        background: url('../images/camera3.jpg') no-repeat 0 -180px;
+        color: azure;
+        text-align: center;
+    }
+    article#main-col{
+        float: none;
+        width: 100%;
+    }
+    header{
+        padding-bottom: 25px;
+    }
+    #show h1{
+        margin-top: 50px;
+        font-size: 38px;
+    }
+    #line button{
+        width: 100%;
+    }
+    ul#photos button{
+
+        display: inline;
+        margin: 0;
+        font-size: 12px;
+        height: 20px;
+        width: auto;
+        padding: 1px 2px 1px 2px;
+        box-shadow: none;
+    }
+
+    ul#photos p{
+        text-align: left;
+        font-size: 12px;
+        padding: 0;
+        margin-top:4px;
+    }
+    ul#photos .count_like{
+        font-size: 10px;
+    }
+    ul#photos h3{
+        font-size: 12px;
+        margin: 0;
+    }
+    footer{
+        font-size: 12px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
