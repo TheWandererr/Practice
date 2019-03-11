@@ -1,4 +1,4 @@
-p = (function() {
+;(function() {
     var photoPosts = [
         {
             id: '1',
