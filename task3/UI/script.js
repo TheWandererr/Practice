@@ -192,7 +192,7 @@ const P = (function () {
         return tags.length > 0;
     }
     function isGreatTag(tag) {
-        return tag.length < 21;
+        return tag.trim().length < 21 && tag.trim().length > 0;
     }
     function isContainFields(where, what) {
         return what.every(function (element) {
@@ -206,6 +206,11 @@ const P = (function () {
             post['author'] = user;
             post['likes'] = [];
             if (this.validatePhotoPost(post)) {
+                let tmp = [];
+                post['hashTags'].forEach(function (item) {
+                    tmp.push(item.trim().toLowerCase());
+                });
+                post['hashTags'] = tmp;
                 photoPosts.push(post);
                 return true;
             }
@@ -304,11 +309,12 @@ const P = (function () {
         }
     };
 }());
+//console.log(P.addPhotoPost({hashTags: ["IUYT"], description: 'I was there', photoLink: 'http'}));
 //console.log(P.addPhotoPost({hashTags: [], description: 'I was there', photoLink:'http'}));
 /*console.log(P.editPhotoPost('5',{
     likes: ['Masha']
 }));*/
-console.log(P.getPhotoPost('5'));
+//console.log(P.getPhotoPost('5'));
 //console.log(P.getPhotoPosts());
 //console.log(P.getPhotoPosts(0,10, {author:'petr', dateTo:new Date('2019-03-07')}));
 /*console.log(P.validatePhotoPost({
