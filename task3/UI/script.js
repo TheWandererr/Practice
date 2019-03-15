@@ -222,7 +222,7 @@ const P = (function () {
         deletePhotoPost: function (id) {
             let tmp = this.getPhotoPost(id);
             if (tmp) {
-                photoPosts.splice(photoPosts.findIndex(tmp), 1);
+                photoPosts.splice(photoPosts.IndexOf(tmp), 1);
                 return true;
             }
             return false;
