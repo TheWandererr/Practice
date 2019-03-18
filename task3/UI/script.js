@@ -2,40 +2,51 @@ class PostList {
     static _MIN_DESCRIPTION_LENGTH = 10;
     static _MAX_DESCRIPTION_LENGTH = 200;
     static _MAX_TAG_LENGTH = 20;
+    static _filterHelper = {
+        author: function(collection, author) {
+            return collection.filter((item) => !item.author.toLowerCase()
+                .trim()
+                .includes(author.toLowerCase().trim()));
+        },
+        dateTo: function(collection, dateTo) {
+            return collection.filter((item) =>
+                item.creationDate <= dateTo);
+        },
+        dateFrom: function(collection, dateFrom) {
+            return collection.filter((item) =>
+                item.creationDate >= dateFrom);
+        },
+        hashTags: function(collection, tagsArray) {
+            return collection.filter((item) =>
+                PostList._isContainTag(item.hashTags, tagsArray));
+        },
+    };
+    static _validateHelper = {
+        description: function(decription) {
+            return decription.length >= PostList._MIN_DESCRIPTION_LENGTH &&
+                decription.length <= PostList._MAX_DESCRIPTION_LENGTH;
+        },
+        hashTags: function(tags) {
+            return tags.every(PostList._isGreatTag);
+        },
+        photoLink: function(link) {
+            return link.length > 0;
+        },
+    };
     constructor(initialPosts) {
         this._posts = (initialPosts || []);
     }
 
     clear() {
-        this._posts.splice(0, this._posts.length);
-        return this._posts.length === 0;
+        this._posts = [];
     }
 
     getPage(skip = 0, get = 10, filterConfig = {}) {
         const self = this;
-        const filterHelper = {
-            author: function(collection, author) {
-                return collection.filter((item) => item['author'].toLowerCase()
-                    .trim()
-                    .includes(author.toLowerCase().trim()) !== false);
-            },
-            dateTo: function(collection, dateTo) {
-                return collection.filter((item) =>
-                    item['creationDate'] <= dateTo);
-            },
-            dateFrom: function(collection, dateFrom) {
-                return collection.filter((item) =>
-                    item['creationDate'] >= dateFrom);
-            },
-            hashTags: function(collection, tagsArray) {
-                return collection.filter((item) =>
-                    self._isContainTag(item['hashTags'], tagsArray));
-            },
-        };
         let filteredPosts = this._posts.slice();
         Object.keys(filterConfig).forEach(function(field) {
-            if (filterHelper[field]) {
-                filteredPosts = filterHelper[field](filteredPosts,
+            if (PostList._filterHelper[field]) {
+                filteredPosts = PostList._filterHelper[field](filteredPosts,
                     filterConfig[field]);
             }
         });
@@ -73,13 +84,13 @@ class PostList {
     }
 
     add(post) {
-        post['creationDate'] = new Date();
-        post['id'] = Math.floor(post['creationDate'].valueOf() *
+        post.creationDate = new Date();
+        post.id = Math.floor(post.creationDate.valueOf() *
             Math.random()).toString();
-        post['author'] = `Name for <${post['id']}>`;//  temporary solution
-        post['likes'] = [];
+        post.author = `Name for <${post.id}>`;//  temporary solution
+        post.likes = [];
         if (PostList._validate(post)) {
-            post['hashTags'] = this._toLowerCase(post['hashTags']);
+            post.hashTags = this._toLowerCase(post.hashTags);
             this._posts.push(post);
             return true;
         }
@@ -96,7 +107,7 @@ class PostList {
     }
 
     get(id) {
-        return this._posts.find((value) => value['id'] === id);
+        return this._posts.find((value) => value.id === id);
     }
 
     addAll(posts) {
@@ -132,22 +143,10 @@ class PostList {
         const isGreat = [];
         let status = false;
         if (photoPost) {
-            const validateHelper = {
-                description: function(decription) {
-                    return decription.length >= PostList._MIN_DESCRIPTION_LENGTH &&
-                        decription.length <= PostList._MAX_DESCRIPTION_LENGTH;
-                },
-                hashTags: function(tags) {
-                    return tags.every(PostList._isGreatTag);
-                },
-                photoLink: function(link) {
-                    return link.length > 0;
-                },
-            };
             Object.keys(photoPost).forEach(function(field) {
-                if (validateHelper[field]) {
+                if (PostList._validateHelper[field]) {
                     if (field) {
-                        status = validateHelper[field](photoPost[field]);
+                        status = PostList._validateHelper[field](photoPost[field]);
                         isGreat.push(status);
                     } else {
                         isGreat.push(false);
@@ -168,17 +167,17 @@ class PostList {
         return tag.trim().length <= PostList._MAX_TAG_LENGTH && tag.trim().length > 0;
     }
 
-    _isContainTag(where, what) {
-        const tags = what.filter((item) => where.includes(item) === true);
+    static _isContainTag(where, what) {
+        const tags = what.filter((item) => where.includes(item));
         return tags.length > 0;
     }
 
     _sortDownByDate(a, b) {
-        return b['creationDate'] - a['creationDate'];
+        return b.creationDate - a.creationDate;
     }
 
     _toLowerCase(arr) {
-        return arr.toString().toLowerCase().split();
+        return arr.toString().toLowerCase().split(',');
     }
 }
 
@@ -316,7 +315,8 @@ console.log(obj.addAll([
         likes: [],
     },
 ]));
-console.log(obj.getPage(0, 10, {dateTo: new Date('2019-03-10 21:00')}));
+console.log(obj.getPage(0, 10,
+    {dateFrom: new Date('2019-03-06'), dateTo: new Date('2019-03-10 21:00')}));
 console.log(obj.add([]));
 console.log(obj.add(
     {hashTags: ['IUYT'], description: 'I was there', photoLink: 'http'}
