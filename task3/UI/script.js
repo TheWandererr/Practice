@@ -1,342 +1,337 @@
-const photoPosts = [
-    {
-        id: "1",
-        description: "Love is love",
-        creationDate: new Date("2019-03-06T23:00:00"),
-        author: "Petr Ivanov",
-        photoLink: "http://",
-        hashTags: ["auto"],
-        likes: []
-    },
-    {
-        id: "2",
-        description: "Life is life",
-        creationDate: new Date("2019-03-07T23:30:00"),
-        author: "Petr",
-        photoLink: "http://life",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "3",
-        description: "Look at that!!!",
-        creationDate: new Date("2019-03-06T23:00:00"),
-        author: "Ivan",
-        photoLink: "http://look",
-        hashTags: ["motobike"],
-        likes: []
-    },
-    {
-        id: "4",
-        description: "Pam pam pam",
-        creationDate: new Date("2019-03-06T23:00:00"),
-        author: "Ganna",
-        photoLink: "http://ganna",
-        hashTags: ["qqqwwweeerrrtttyyyuo"],
-        likes: []
-    },
-    {
-        id: "5",
-        description: "My favorite car",
-        creationDate: new Date("2019-03-07T23:00:00"),
-        author: "Lexa",
-        photoLink: "http://lexa",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "6",
-        description: "Hi, my dear friends",
-        creationDate: new Date(),
-        author: "Chelik",
-        photoLink: "http://chelik",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "7",
-        description: "Hello, my dear dad",
-        creationDate: new Date("2018-03-06T23:00:00"),
-        author: "Chel",
-        photoLink: "http://chel",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "8",
-        description: "car house honor",
-        creationDate: new Date(),
-        author: "molly",
-        photoLink: "http://molly",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "9",
-        description: "its my home",
-        creationDate: new Date("2019-03-07T23:00:00"),
-        author: "valya",
-        photoLink: "http://valya",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "10",
-        description: "sport sport sport!!!",
-        creationDate: new Date(),
-        author: "serega",
-        photoLink: "http://serega",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "11",
-        description: "I love you",
-        creationDate: new Date(),
-        author: "Kris",
-        photoLink: "http://kris",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "12",
-        description: "thanks for day",
-        creationDate: new Date(),
-        author: "katya",
-        photoLink: "http://katya",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "13",
-        description: "pam param pam pam",
-        creationDate: new Date(),
-        author: "mac",
-        photoLink: "http://mac",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "14",
-        description: "fanny moment",
-        creationDate: new Date(),
-        author: "alex",
-        photoLink: "http://alex",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "15",
-        description: "animals are wonderful",
-        creationDate: new Date(),
-        author: "felya",
-        photoLink: "http://felya",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "16",
-        description: "lovely boy",
-        creationDate: new Date(),
-        author: "max",
-        photoLink: "http://max",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "17",
-        description: "kimi no Na wa",
-        creationDate: new Date("2019-03-07"),
-        author: "Sparkle",
-        photoLink: "http://Sparkle",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "18",
-        description: "love me like you do",
-        creationDate: new Date("2019-03-08"),
-        author: "Ellie",
-        photoLink: "http://ellie",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "19",
-        description: "Hey, soul sister",
-        creationDate: new Date(),
-        author: "Train",
-        photoLink: "http://train",
-        hashTags: [],
-        likes: []
-    },
-    {
-        id: "20",
-        description: "wake me up in the sky",
-        creationDate: new Date(),
-        author: "Gucci",
-        photoLink: "http://Gucci",
-        hashTags: ["avia"],
-        likes: []
+class PostList {
+    static _MIN_DESCRIPTION_LENGTH = 10;
+    static _MAX_DESCRIPTION_LENGTH = 200;
+    static _MAX_TAG_LENGTH = 20;
+    constructor(initialPosts) {
+        this._posts = (initialPosts || []);
     }
 
-];
-const user = "Kuzya";
-const requiredFields = ['id', 'description', 'creationDate', 'hashTags', 'likes', 'author', 'photoLink'];
-const P = (function () {
-    function sortDownByDate(a, b) {
-        return b['creationDate'] - a['creationDate'];
+    clear() {
+        this._posts.splice(0, this._posts.length);
+        return this._posts.length === 0;
     }
-    function isContainTag(where, what) {
-        let tags = what.filter((item) => where.includes(item) === true);
-        return tags.length > 0;
-    }
-    function isGreatTag(tag) {
-        return tag.length < 21;
-    }
-    function isContainFields(where, what) {
-        return what.every(function (element) {
-            return where.includes(element);
+
+    getPage(skip = 0, get = 10, filterConfig = {}) {
+        const self = this;
+        const filterHelper = {
+            author: function(collection, author) {
+                return collection.filter((item) => item['author'].toLowerCase()
+                    .trim()
+                    .includes(author.toLowerCase().trim()) !== false);
+            },
+            dateTo: function(collection, dateTo) {
+                return collection.filter((item) =>
+                    item['creationDate'] <= dateTo);
+            },
+            dateFrom: function(collection, dateTo) {
+                return collection.filter((item) =>
+                    item['creationDate'] >= dateTo);
+            },
+            hashTags: function(collection, tagsArray) {
+                return collection.filter((item) =>
+                    self._isContainTag(item['hashTags'], tagsArray));
+            },
+        };
+        let filteredPosts = this._posts.slice();
+        Object.keys(filterConfig).forEach(function(field) {
+            if (filterHelper[field]) {
+                filteredPosts = filterHelper[field](filteredPosts,
+                    filterConfig[field]);
+            }
         });
+        return filteredPosts.slice(skip, skip + get).sort(self._sortDownByDate);
     }
-    return {
-        addPhotoPost: function (post) {
-            post['id'] = new Date().getMilliseconds().toString();
-            post['creationDate'] = new Date();
-            post['author'] = user;
-            post['likes'] = [];
-            if (this.validatePhotoPost(post)) {
-                photoPosts.push(post);
-                return true;
-            }
-            return false;
-        },
-        getPhotoPost: function (id) {
-            return photoPosts.find((value) => value["id"] === id);
-        },
-        deletePhotoPost: function (id) {
-            let tmp = this.getPhotoPost(id);
-            if (tmp) {
-                photoPosts.splice(photoPosts.findIndex(tmp), 1);
-                return true;
-            }
-            return false;
-        },
-        editPhotoPost: function (id, post) {
-            let tmp = this.getPhotoPost(id);
+
+    edit(id, post) {
+        if (post) {
+            const tmp = this.get(id);
             if (!tmp) {
                 return false;
             }
-            let objectToEdit = {};
+            const objectToEdit = {};
             Object.keys(tmp).forEach((item) => objectToEdit[item] = tmp[item]);
             Object.keys(post).forEach((item) => {
                 switch (item) {
-                    case "description":
-                    case "hashTags":
-                    case "likes":
-                    case "photoLink": {
+                    case 'description':
+                    case 'likes':
+                    case 'photoLink': {
                         objectToEdit[item] = post[item];
                         break;
                     }
+                    case 'hashTags': {
+                        objectToEdit[item] = this._toLowerCase(post[item]);
+                    }
                 }
             });
-            if (this.validatePhotoPost(objectToEdit, true)) {
-                let index = photoPosts.indexOf(tmp);
-                photoPosts.splice(index, 1, objectToEdit);
+            if (PostList._validate(objectToEdit, true)) {
+                const index = this._posts.indexOf(tmp);
+                this._posts.splice(index, 1, objectToEdit);
                 return true;
-            } else {
+            }
+        }
+        return false;
+    }
+
+    add(post) {
+        post['creationDate'] = new Date();
+        post['id'] = Math.floor(post['creationDate'].valueOf() *
+            Math.random()).toString();
+        post['author'] = `Name for <${post['id']}>`;//  temporary solution
+        post['likes'] = [];
+        if (PostList._validate(post)) {
+            post['hashTags'] = this._toLowerCase(post['hashTags']);
+            this._posts.push(post);
+            return true;
+        }
+        return false;
+    }
+
+    remove(id) {
+        const tmp = this.get(id);
+        if (tmp) {
+            this._posts.splice(this._posts.indexOf(tmp), 1);
+            return true;
+        }
+        return false;
+    }
+
+    get(id) {
+        return this._posts.find((value) => value['id'] === id);
+    }
+
+    addAll(posts) {
+        if (posts) {
+            const self = this;
+            const failedValidation = [];
+            posts.forEach(function(item) {
+                if (!self.add(item)) {
+                    failedValidation.push(item);
+                }
+            });
+            return failedValidation;
+        }
+        return posts;
+    }
+
+    static _validate(photoPost, afterEdit = false) {
+        if (!afterEdit) {
+            const requiredFields = [
+                'id',
+                'description',
+                'creationDate',
+                'hashTags',
+                'likes',
+                'author',
+                'photoLink',
+            ];
+            if (!(PostList._isContainFields(Object.keys(photoPost),
+                requiredFields))) {
                 return false;
             }
-        },
-        getPhotoPosts: function (skip = 0, get = 10, filterConfig = {}) {
-            let filterHelper = {
-                author: function (collection, author) {
-                    return collection.filter((item) => item['author'].toLowerCase()
-                        .trim()
-                        .includes(author.toLowerCase().trim()) !== false);
+        }
+        const isGreat = [];
+        let status = false;
+        if (photoPost) {
+            const validateHelper = {
+                description: function(decription) {
+                    return decription.length >= PostList._MIN_DESCRIPTION_LENGTH &&
+                        decription.length <= PostList._MAX_DESCRIPTION_LENGTH;
                 },
-                dateTo: function (collection, dateTo) {
-                    return collection.filter((item) => item['creationDate'] <= dateTo);
+                hashTags: function(tags) {
+                    return tags.every(PostList._isGreatTag);
                 },
-                dateFrom: function (collection, dateTo) {
-                    return collection.filter((item) => item['creationDate'] >= dateTo);
+                photoLink: function(link) {
+                    return link.length > 0;
                 },
-                hashTags: function (collection, tagsArray) {
-                    return collection.filter((item) => isContainTag(item['hashTags'], tagsArray));
-                }
             };
-            let filteredPosts = photoPosts.slice();
-            Object.keys(filterConfig).forEach(function (field) {
-                if (filterHelper[field]) {
-                    filteredPosts = filterHelper[field](filteredPosts, filterConfig[field]);
-                }
-            });
-            return filteredPosts.slice(skip, skip + get).sort(sortDownByDate);
-        },
-        validatePhotoPost: function (photoPost, afterEdit = false) {
-            if (!afterEdit) {
-                if (!(isContainFields(Object.keys(photoPost), requiredFields))) {
-                    return false;
-                }
-            }
-            let isGreat = [];
-            let status = false;
-            if (photoPost) {
-                let validateHelper = {
-                    description: function (decription) {
-                        return decription.length > 9 && decription.length < 201;
-                    },
-                    hashTags: function (tags) {
-                        return tags.every(isGreatTag);
-                    },
-                    photoLink: function (link) {
-                        return link.length > 0;
-                    }
-                };
-                Object.keys(photoPost).forEach(function (field) {
-                    if (validateHelper[field]) {
+            Object.keys(photoPost).forEach(function(field) {
+                if (validateHelper[field]) {
+                    if (field) {
                         status = validateHelper[field](photoPost[field]);
                         isGreat.push(status);
+                    } else {
+                        isGreat.push(false);
                     }
-                });
-            }
-            return !isGreat.includes(false);
+                }
+            });
         }
-    };
-}());
-//console.log(P.addPhotoPost({hashTags: [], description: 'I was there', photoLink:'http'}));
-/*console.log(P.editPhotoPost('5',{
-    likes: ['Masha']
-}));*/
-console.log(P.getPhotoPost('5'));
-//console.log(P.getPhotoPosts());
-//console.log(P.getPhotoPosts(0,10, {author:'petr', dateTo:new Date('2019-03-07')}));
-/*console.log(P.validatePhotoPost({
-    id: new Date().getMilliseconds(),
-    description: "Love is love",
-    creationDate: new Date("2019-03-06T23:00:00"),
-    author: "Petr Ivanov",
-    photoLink: "http://",
-    hashTags: ["auto", "dwdwdwdwfwklfwefkwfk"],
-    likes: []
-}));*/
-/*console.log(P.validatePhotoPost({
-    id: new Date().getMilliseconds(),
-    description: "Love is love",
-    creationDate: new Date("2019-03-06T23:00:00"),
-    author: "Petr Ivanov",
-    photoLink: "",
-    hashTags: ["auto"],
-    likes: []
-}));*/
-//console.log(P.getPhotoPost('1'));
-/*console.log(P.editPhotoPost('1',{
-    id: "1",
-    description: "Love is COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOl",
-    creationDate: new Date("2019-03-06T23:00:00"),
-    author: "Ivanov",
-    photoLink: "http://",
-    hashTags: ["buba", "dwdwdwdwfwwefkwfk"],
-    likes: []
-}));*/
-//console.log(P.getPhotoPost('1'));
+        return !isGreat.includes(false);
+    }
+
+    static _isContainFields(where, what) {
+        return what.every(function(element) {
+            return where.includes(element);
+        });
+    }
+
+    static _isGreatTag(tag) {
+        return tag.trim().length <= PostList._MAX_TAG_LENGTH && tag.trim().length > 0;
+    }
+
+    _isContainTag(where, what) {
+        const tags = what.filter((item) => where.includes(item) === true);
+        return tags.length > 0;
+    }
+
+    _sortDownByDate(a, b) {
+        return b['creationDate'] - a['creationDate'];
+    }
+
+    _toLowerCase(arr) {
+        return arr.toString().toLowerCase().split();
+    }
+}
+
+/*  const obj = new PostList([
+    {
+        id: '5',
+        description: 'Do more than u can',
+        creationDate: new Date('2019-03-07T23:30:00'),
+        author: 'Petr',
+        photoLink: 'http://life',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        id: '6',
+        description: 'GO GO GO GO GO',
+        creationDate: new Date('2019-03-05T23:30:00'),
+        author: 'LEXA',
+        photoLink: 'http://lexa',
+        hashTags: ['JUSTGO'],
+        likes: [],
+    },
+]);
+console.log(obj.addAll([
+    {
+        description: 'Life is life',
+        photoLink: '',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'Look at that!!!',
+        photoLink: 'http://look',
+        hashTags: ['444444444444444444444444'],
+        likes: [],
+    },
+    {
+        description: 'Pam pam pam',
+        photoLink: 'http://ganna',
+        hashTags: ['qqqwwweeerrrtttyyyuo'],
+        likes: [],
+    },
+    {
+        description: 'My favorite car',
+        photoLink: 'http://lexa',
+        hashTags: ['auto'],
+        likes: [],
+    },
+    {
+        description: 'Hi, my dear friends',
+        photoLink: 'http://chelik',
+        hashTags: ['family', 'friend'],
+        likes: [],
+    },
+    {
+        description: 'Hello, my dear dad',
+        photoLink: 'http://chel',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'car house honor',
+        photoLink: 'http://molly',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'its my home',
+        photoLink: 'http://valya',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'sport sport sport!!!',
+        photoLink: 'http://serega',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'I love you',
+        photoLink: 'http://kris',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'thanks for day',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'pam param pam pam',
+        photoLink: 'http://mac',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'funny moment',
+        photoLink: 'http://alex',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'animals are wonderful',
+        photoLink: 'http://felya',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'lovely boy',
+        photoLink: 'http://max',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        creationDate: new Date('2019-03-07'),
+        photoLink: 'http://Sparkle',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'love me like you do',
+        photoLink: 'http://ellie',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'Hey, soul sister',
+        photoLink: 'http://train',
+        hashTags: [],
+        likes: [],
+    },
+    {
+        description: 'wake me up in the sky',
+        hashTags: ['avia'],
+        likes: [],
+    },
+]));
+console.log(obj.getPage(0, 10, {dateTo: new Date('2019-03-10 21:00')}));
+console.log(obj.add([]));
+console.log(obj.add(
+    {hashTags: ['IUYT'], description: 'I was there', photoLink: 'http'}
+    ));
+console.log(obj.add(
+    {hashTags: [], description: 'I was there', photoLink: 'http'}
+    ));
+console.log(obj.edit('5', {likes: ['Masha'], hashTags: ['OK']}));
+console.log(obj.get('5'));
+console.log(obj.getPage(0, 10, {hashTags: ['auto']}));
+console.log(obj.edit('22566', {
+    likes: ['Masha'],
+}));
+console.log(obj.remove('1'));
+console.log(obj.remove('11111'));
+console.log(obj.clear());
+console.log(obj.getPage());
+console.log(obj.add({a: 'ff'}));*/
