@@ -181,7 +181,7 @@ class PostList {
     }
 }
 
-const obj = new PostList([
+/*  const obj = new PostList([
     {
         id: '5',
         description: 'Do more than u can',
@@ -334,4 +334,4 @@ console.log(obj.remove('1'));
 console.log(obj.remove('11111'));
 console.log(obj.clear());
 console.log(obj.getPage());
-console.log(obj.add({a: 'ff'}));
+console.log(obj.add({a: 'ff'}));*/
