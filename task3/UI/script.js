@@ -23,9 +23,9 @@ class PostList {
                 return collection.filter((item) =>
                     item['creationDate'] <= dateTo);
             },
-            dateFrom: function(collection, dateTo) {
+            dateFrom: function(collection, dateFrom) {
                 return collection.filter((item) =>
-                    item['creationDate'] >= dateTo);
+                    item['creationDate'] >= dateFrom);
             },
             hashTags: function(collection, tagsArray) {
                 return collection.filter((item) =>
