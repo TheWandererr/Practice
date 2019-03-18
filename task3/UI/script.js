@@ -1,4 +1,7 @@
 const P = (function () {
+    const MIN_DESCRIPTION_LENGTH = 10;
+    const MAX_DESCRIPTION_LENGTH = 200;
+    const MAX_TAG_LENGTH = 20;
     const photoPosts = [
         {
             id: "1",
@@ -192,7 +195,7 @@ const P = (function () {
         return tags.length > 0;
     }
     function isGreatTag(tag) {
-        return tag.trim().length < 21 && tag.trim().length > 0;
+        return tag.trim().length <= MAX_TAG_LENGTH && tag.trim().length > 0;
     }
     function isContainFields(where, what) {
         return what.every(function (element) {
@@ -289,7 +292,7 @@ const P = (function () {
             if (photoPost) {
                 let validateHelper = {
                     description: function (decription) {
-                        return decription.length > 9 && decription.length < 201;
+                        return decription.length >= MIN_DESCRIPTION_LENGTH && decription.length <= MAX_DESCRIPTION_LENGTH;
                     },
                     hashTags: function (tags) {
                         return tags.every(isGreatTag);
