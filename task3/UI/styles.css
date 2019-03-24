@@ -21,9 +21,11 @@ ul {
     background: #e5e5e5;
     font-size: 16px;
     padding: 5px 0 0 0;
+    transform: none;
+    font-family: "Comic Sans MS";
 }
 .btn-like {
-    font-family: "Comic Sans MS, Arial";
+    font-family: "Comic Sans MS";
     border: tomato 2px solid;
     text-align: center;
     background: coral;
@@ -51,9 +53,10 @@ ul {
     margin-top: 10px;
     height: 38px;
     background: coral;
-    color: azure;
+    color: #ffffff;
     width: 60%;
     cursor: pointer;
+    display: none;
     border: none;
 }
 .more-button:hover, .add-button:hover, .apply-button:hover {
@@ -64,10 +67,11 @@ ul {
     height: 38px;
     background: coral;
     border: 0;
-    color: azure;
+    color: #ffffff;
     width: 65.5%;
     cursor: pointer;
     outline: none;
+    display: inline;
 }
 .apply-button {
     outline: none;
@@ -75,7 +79,7 @@ ul {
     height: 38px;
     background: coral;
     border: 0;
-    color: azure;
+    color: #ffffff;
     width: 95%;
     cursor: pointer;
 }
@@ -88,13 +92,14 @@ ul {
     height: 30px;
     text-decoration: none;
     text-align: center;
-    font-family: "Comic Sans MS, Arial";
+    font-family: "Comic Sans MS";
     font-size: 16px;
     color: #35424a;
     background-color: #cccccc;
     border: 2px solid #35424a;
     -webkit-transition: 0.2s ease;
     transition: 0.2s ease;
+    display: inline;
 }
 .change-button:hover {
     transform: translateY(-2px);
@@ -117,10 +122,11 @@ ul {
     color: #35424a;
     background-color: #cccccc;
     border: 2px solid #35424a;
-    font-family: "Comic Sans MS, Arial";
+    font-family: "Comic Sans MS";
     font-size: 16px;
     -webkit-transition: 0.2s ease;
     transition: 0.2s ease;
+    display: none;
 }
 .delete-button:hover {
     transform: translateY(-2px);
@@ -128,7 +134,7 @@ ul {
     height: 30px;
     text-decoration: none;
     text-align: center;
-    color: azure;
+    color: #ffffff;
     background-color: coral;
 }
 .apply-button, .more-button, .add-button {
@@ -178,7 +184,7 @@ ul {
 .show {
     min-height: 320px;
     background: url('images/camera3.jpg') no-repeat 0 -320px;
-    color: azure;
+    color: #ffffff;
     text-align: center;
 }
 .show h1 {
@@ -228,7 +234,7 @@ ul {
     width: 65%;
 }
 article img {
-    width: 80%;
+    width: 85%;
     border: #35424a solid 1px;
 }
 .photos li {
@@ -248,7 +254,7 @@ article img {
     padding: 0 0 0 5px;
     font-style: italic;
     font-weight: normal;
-    font-family: Ava;
+    font-family: "Ava";
 }
 .photos p {
     color: #35424a;
@@ -256,6 +262,7 @@ article img {
     max-width: 100%;
     border-bottom-style: double;
     border-top-style: double;
+    font-family: "Ava";
 }
 .photos button {
     text-align-all: center;
@@ -297,20 +304,34 @@ article .more {
     }
     .show h1 {
         margin-top: 50px;
-        font-size: 60px;
+        font-size: 50px;
     }
     .photos p {
         text-align: left;
+        font-size: 14px;
+        font-family: "Comic Sans MS";
+    }
+    .photos h3{
+        font-size: 95%;
+    }
+    .photos .count-like{
+        font-family: "Comic Sans MS";
         font-size: 14px;
     }
     .photos button {
         display: inline;
         margin: 0;
         font-size: 14px;
-        height: 25px;
+        height: 23px;
         width: fit-content;
         -webkit-transition: 0.2s ease;
         transition: 0.2s ease;
+        font-family: "Comic Sans MS";
+    }
+    .photos a{
+        font-size: 11px;
+        margin-left: 10px;
+
     }
     .photos button:hover {
         transform: translateY(-2px);
@@ -343,7 +364,7 @@ article .more {
     .show {
         min-height: 180px;
         background: url('images/camera3.jpg') no-repeat 0 -180px;
-        color: azure;
+        color: #ffffff;
         text-align: center;
     }
     .main-col {
@@ -363,28 +384,30 @@ article .more {
     .photos button {
         display: inline;
         margin: 0;
-        font-size: 12px;
-        height: 20px;
+        font-size: 10px;
+        height: 16px;
         width: fit-content;
         -webkit-transition: 0.2s ease;
         transition: 0.2s ease;
+        font-family: Arial;
     }
     .photos button:hover {
         transform: translateY(-2px);
         width: auto;
-        height: 20px;
+        height: 16px;
         text-decoration: none;
         text-align: center;
-        font-size: 12px;
+        font-size: 10px;
     }
     .photos p {
         text-align: left;
-        font-size: 12px;
+        font-size: 11px;
         padding: 0;
         margin-top: 4px;
     }
     .photos .count-like {
         font-size: 10px;
+        margin-left: 5px;
     }
     .photos h3 {
         font-size: 12px;
