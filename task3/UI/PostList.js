@@ -4,7 +4,7 @@ class PostList {
     static _MAX_TAG_LENGTH = 20;
     static _filterHelper = {
         author: function(collection, author) {
-            return collection.filter((item) => !item.author.toLowerCase()
+            return collection.filter((item) => item.author.toLowerCase()
                 .trim()
                 .includes(author.toLowerCase().trim()));
         },
@@ -57,7 +57,7 @@ class PostList {
                 return false;
             }
             const objectToEdit = {};
-            Object.keys(tmp).forEach((item) => objectToEdit[item] = tmp[item]);
+            Object.keys(tmp).forEach((item) => {objectToEdit[item] = tmp[item]});
             Object.keys(post).forEach((item) => {
                 switch (item) {
                     case 'description':
@@ -79,12 +79,12 @@ class PostList {
         return false;
     }
     add(post, username) {
-        post.creationDate = new Date();
-        post.id = Math.floor(post.creationDate.valueOf() *
-            Math.random()).toString();
-        post.author = username;
-        post.likes = [];
         if (PostList._validate(post)) {
+            post.creationDate = new Date();
+            post.id = Math.floor(post.creationDate.valueOf() *
+                Math.random()).toString();
+            post.author = username;
+            post.likes = [];
             post.hashTags = this._toLowerCase(post.hashTags);
             this._posts.push(post);
             return true;
@@ -117,38 +117,23 @@ class PostList {
     }
     like(id, user) {
         const tmp = this.get(id);
-        if (!tmp) {
-            return false;
+        const index = tmp.likes.indexOf(user);
+        if (index === -1) {
+            tmp.likes.push(user);
+            return true;
         } else {
-            if (tmp.likes.indexOf(user) === -1) {
-                tmp.likes.push(user);
-                return true;
-            }
+            tmp.likes.splice(index, 1);
+            return false;
         }
-        return false;
     }
-    dislike(id, user) {
-        const tmp = this.get(id);
-        if (!tmp) {
-            return false;
-        } else {
-            const index = tmp.likes.indexOf(user);
-            if (index !== -1) {
-                tmp.likes.splice(index, 1);
-                return true;
-            }
-        }
-        return false;
+    getPostListLength() {
+        return this._posts.length;
     }
     static _validate(photoPost, afterEdit = false) {
         if (!afterEdit) {
             const requiredFields = [
-                'id',
                 'description',
-                'creationDate',
                 'hashTags',
-                'likes',
-                'author',
                 'photoLink',
             ];
             if (!(PostList._isContainFields(Object.keys(photoPost),
@@ -156,21 +141,8 @@ class PostList {
                 return false;
             }
         }
-        const isGreat = [];
-        let status = false;
-        if (photoPost) {
-            Object.keys(photoPost).forEach(function(field) {
-                if (PostList._validateHelper[field]) {
-                    if (field) {
-                        status = PostList._validateHelper[field](photoPost[field]);
-                        isGreat.push(status);
-                    } else {
-                        isGreat.push(false);
-                    }
-                }
-            });
-        }
-        return !isGreat.includes(false);
+        return  Object.keys(PostList._validateHelper).every((field) =>
+            PostList._validateHelper[field](photoPost[field]));
     }
     static _isContainFields(where, what) {
         return what.every(function(element) {

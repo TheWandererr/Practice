@@ -1,24 +1,25 @@
 const Global = (function() {
-    // u can edit user config for test
     const user = {
-        name: 'IVAN',
-        unLog: false,
+        name: undefined,
+        unLog: true,
     };
+    let skip = 0;
+    let filterConf = {};
     const posts = [
         {
             id: '31',
             description: 'GO GO GO GO GO',
             creationDate: new Date(),
-            author: 'IVAN',
+            author: 'bob',
             photoLink: 'images/1.jpg',
             hashTags: ['justdoit'],
-            likes: [],
+            likes: ['IVAN'],
         },
         {
             id: '30',
             description: 'GO GO GO GO GO',
             creationDate: new Date(),
-            author: 'Gena',
+            author: 'bob',
             photoLink: 'images/2.jpg',
             hashTags: ['justdoit'],
             likes: [],
@@ -27,7 +28,7 @@ const Global = (function() {
             id: '29',
             description: 'I love this world',
             creationDate: new Date(),
-            author: 'Iva',
+            author: 'kolya',
             photoLink: 'images/3.jpg',
             hashTags: [],
             likes: [],
@@ -54,7 +55,7 @@ const Global = (function() {
             id: '26',
             description: 'GO GO GO GO GO',
             creationDate: new Date(),
-            author: 'Petr',
+            author: 'IVAN',
             photoLink: 'images/11.jpg',
             hashTags: [],
             likes: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', '', 'j', 'k', 'l', 'm'],
@@ -100,7 +101,7 @@ const Global = (function() {
             description: 'GO GO GO GO GO',
             creationDate: new Date(),
             author: 'IVAN',
-            photoLink: 'images/12.jpg',
+            photoLink: 'images/8.jpg',
             hashTags: ['justdoit'],
             likes: [],
         },
@@ -109,7 +110,7 @@ const Global = (function() {
             description: 'GO GO GO GO GO',
             creationDate: new Date(),
             author: 'IVAN',
-            photoLink: 'images/12.jpg',
+            photoLink: 'images/11.jpg',
             hashTags: ['justdoit'],
             likes: [],
         },
@@ -125,7 +126,7 @@ const Global = (function() {
         {
             id: '2',
             description: 'Do more than u can',
-            creationDate: new Date('2019-03-21T23:30:00'),
+            creationDate: new Date('2018-03-21T23:30:00'),
             author: 'Petr',
             photoLink: 'images/2.jpg',
             hashTags: [],
@@ -134,7 +135,7 @@ const Global = (function() {
         {
             id: '3',
             description: 'GO GO GO GO GO',
-            creationDate: new Date('2019-03-20T23:30:00'),
+            creationDate: new Date('2018-03-20T23:30:00'),
             author: 'LEXA',
             photoLink: 'images/3.jpg',
             hashTags: ['justdoit'],
@@ -199,7 +200,7 @@ const Global = (function() {
             description: 'Do more than u can',
             creationDate: new Date('2019-03-13T23:30:00'),
             author: 'Petr',
-            photoLink: 'images/10.jpg',
+            photoLink: 'images/12.jpg',
             hashTags: [],
             likes: [],
         },
@@ -208,7 +209,7 @@ const Global = (function() {
             description: 'GO GO GO GO GO',
             creationDate: new Date('2019-03-12T23:30:00'),
             author: 'LEXA',
-            photoLink: 'images/11.jpg',
+            photoLink: 'images/14.jpg',
             hashTags: ['justdoit'],
             likes: [],
         },
@@ -217,20 +218,21 @@ const Global = (function() {
             description: 'Do more than u can',
             creationDate: new Date('2019-03-11T23:30:00'),
             author: 'Petr',
-            photoLink: 'images/camera3.jpg',
+            photoLink: 'images/13.jpg',
             hashTags: [],
             likes: [],
         },
-
     ];
-    let skip = 0;
     const get = 10;
     const postList = new PostList(posts);
-    const view = new View(user, postList.getPage(0, get), posts.length);
+    const view = new View(user, postList.getPage(skip, get), posts.length);
+    function isEmptyFilter(object) {
+        return JSON.stringify(object) === '{}';
+    }
     return {
         showMore: function() {
             skip += 10;
-            const nextPosts = postList.getPage(skip, get);
+            const nextPosts = postList.getPage(skip, get, filterConf);
             view.showMore(nextPosts);
         },
         addPhotoPost: function(post) {
@@ -244,7 +246,7 @@ const Global = (function() {
         removePhotoPost: function(id) {
             if (!user.unLog && postList.remove(id)) {
                 skip = 0;
-                view.getPage(postList.getPage(skip, get), false, true);
+                view.getPage(postList.getPage(skip, get, filterConf), false, true);
                 return true;
             }
             return false;
@@ -257,16 +259,26 @@ const Global = (function() {
             }
             return false;
         },
+        filterPosts: function(filterConfig = {}) {
+            skip = 0;
+            if (!isEmptyFilter(filterConfig)) {
+                Object.keys(filterConfig).forEach((key) => filterConf[key] = filterConfig[key]);
+            } else {
+                filterConf = {};
+            }
+            const result = postList.getPage(skip, postList.getPostListLength(), filterConf);
+            view.getPage(result.slice(skip, skip + get), false, false, result.length);
+        },
         likePostById: function(id) {
             if (!user.unLog && postList.like(id, user.name)) {
-                View.updatePostLikes(id, postList.get(id).likes.length);
+                view.updatePostLikes(postList.get(id));
                 return true;
             }
             return false;
         },
         dislikePostById: function(id) {
-            if (!user.unLog && postList.dislike(id, user.name)) {
-                View.updatePostLikes(id, postList.get(id).likes.length, false);
+            if (!user.unLog && !postList.like(id, user.name)) {
+                view.updatePostLikes(postList.get(id), false);
                 return true;
             }
             return false;

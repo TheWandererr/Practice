@@ -15,6 +15,9 @@ ul {
     margin: 0;
     padding: 0;
 }
+.hidden-element{
+    display: none;
+}
 .count-like {
     border: none;
     outline: none;
@@ -39,12 +42,33 @@ ul {
     text-decoration: none;
     -webkit-transition: 0.2s ease;
     transition: 0.2s ease;
+    display: inline;
 }
 .btn-like:hover {
     transform: translateY(-2px);
 }
 .btn-like .fa {
     text-align: center;
+}
+.btn-liked {
+    font-family: "Comic Sans MS";
+    border: #35424a 2px solid;
+    text-align: center;
+    background: coral;
+    border-radius: 3px;
+    box-shadow: 0 10px 20px -8px rgb(255, 136, 67);
+    font-size: 16px;
+    height: 30px;
+    cursor: pointer;
+    outline: none;
+    color: #35424a;
+    text-decoration: none;
+    -webkit-transition: 0.2s ease;
+    transition: 0.2s ease;
+    display: inline;
+}
+.btn-liked:hover {
+    transform: translateY(-2px);
 }
 .more-button {
     font-size: 16px;
@@ -126,7 +150,7 @@ ul {
     font-size: 16px;
     -webkit-transition: 0.2s ease;
     transition: 0.2s ease;
-    display: none;
+    display: inline;
 }
 .delete-button:hover {
     transform: translateY(-2px);
@@ -266,7 +290,6 @@ article img {
 }
 .photos button {
     text-align-all: center;
-    display: inline;
 }
 .photos li .bottom-line {
     width: 90%;
@@ -286,6 +309,9 @@ article .more {
     display: inline;
 }
 @media (max-width: 768px) {
+    .hidden-element{
+        display: none;
+    }
     .logo,
     .header nav,
     .header nav li,
@@ -319,7 +345,6 @@ article .more {
         font-size: 14px;
     }
     .photos button {
-        display: inline;
         margin: 0;
         font-size: 14px;
         height: 23px;
@@ -336,13 +361,16 @@ article .more {
     .photos button:hover {
         transform: translateY(-2px);
         width: auto;
-        height: 25px;
+        height: 23px;
         text-decoration: none;
         text-align: center;
         font-size: 14px;
     }
 }
-@media (max-width: 420px) {
+@media (max-width: 400px) {
+    .hidden-element{
+        display: none;
+    }
     .logo,
     .header nav,
     .header nav li,
@@ -382,10 +410,9 @@ article .more {
         width: 100%;
     }
     .photos button {
-        display: inline;
         margin: 0;
-        font-size: 10px;
-        height: 16px;
+        font-size: 12px;
+        height: 17px;
         width: fit-content;
         -webkit-transition: 0.2s ease;
         transition: 0.2s ease;
@@ -394,10 +421,10 @@ article .more {
     .photos button:hover {
         transform: translateY(-2px);
         width: auto;
-        height: 16px;
+        height: 17px;
         text-decoration: none;
         text-align: center;
-        font-size: 10px;
+        font-size: 12px;
     }
     .photos p {
         text-align: left;
