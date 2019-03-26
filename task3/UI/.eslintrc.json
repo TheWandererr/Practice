@@ -1,27 +1,19 @@
 {
     "parserOptions": {
-        "ecmaVersion": 2018,
-        "ecmaFeatures": {
-            "jsx": true
-        },
-        "sourceType": "module"
+        "ecmaVersion": 2017
     },
     "parser": "babel-eslint",
     "env": {
         "browser": true,
-        "es6": true,
-        "node": true
+        "es6": true
     },
-    "extends": [
-        "eslint-config-google"
-    ],
     "rules": {
         "require-jsdoc": "off",
         "linebreak-style": ["error", "windows"],
         "indent": "off",
         "no-console": "off",
         "quotes": ["error", "single"],
-        "max-len": ["error", 100]
-
+        "max-len": ["error", 130],
+        "no-unused-vars": ["warn", {"vars":  "local", "args": "after-used", "ignoreRestSiblings":  false}]
     }
 }
