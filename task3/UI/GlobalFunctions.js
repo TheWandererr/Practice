@@ -1,11 +1,13 @@
 const Global = (function() {
-    const user = {
-        name: undefined,
-        unLog: true,
-    };
-    let skip = 0;
+    const name = getName();
+    const unLog = getUnLog();
+    const user = createUser();
+    const get = 10;
+    const postList = new PostList();
+    const pageController = new PageController(user);
     let filterConf = {};
-    const posts = [
+    let skip = 0;
+    /*  const posts = [
         {
             id: '31',
             description: 'GO GO GO GO GO',
@@ -165,7 +167,7 @@ const Global = (function() {
             creationDate: new Date('2019-03-17T23:32:00'),
             author: 'Petr',
             photoLink: 'images/6.jpg',
-            hashTags: ['HI', 'BYE'],
+            hashTags: ['hi', 'bye'],
             likes: [],
         },
         {
@@ -222,14 +224,25 @@ const Global = (function() {
             hashTags: [],
             likes: [],
         },
-    ];
-    const get = 10;
-    const postList = new PostList(posts);
+    ];*/
+    const posts = postList.getPosts();
     const view = new View(user, postList.getPage(skip, get), posts.length);
     function isEmptyFilter(object) {
         return JSON.stringify(object) === '{}';
     }
+    function getUnLog() {
+        return name === null;
+    }
+    function getName() {
+        return sessionStorage.getItem('username');
+    }
+    function createUser() {
+        return {name: name, unLog: unLog};
+    }
     return {
+        getPostById: function(id) {
+            return postList.get(id);
+        },
         showMore: function() {
             skip += 10;
             const nextPosts = postList.getPage(skip, get, filterConf);
@@ -282,6 +295,18 @@ const Global = (function() {
                 return true;
             }
             return false;
+        },
+        logout: function() {
+            user.name = undefined;
+            user.unLog = true;
+            view.updateUserInfo(user);
+            view.getPage(postList.getPage(skip, get));
+        },
+        login: function(username) {
+            user.name = username;
+            user.unLog = false;
+            view.updateUserInfo(user);
+            view.getPage(postList.getPage());
         },
     };
 }());
