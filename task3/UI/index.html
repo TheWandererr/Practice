@@ -11,12 +11,14 @@
 <header class="header">
     <div class="container">
         <div class="logo">
-            <h1><span class="highlight">Make</span> A Moment</h1>
+            <a href="index.html"><span class="highlight">Make</span> A Moment</a>
         </div>
         <nav>
             <ul>
-                <li><a id="username"></a></li>
-                <li class="line"><a id="exit" href="">LOGIN</a></li>
+                <li><a id="username" href="index.html"></a></li>
+                <li class="line"><a id="exit" >LOGOUT</a></li>
+                <li class="line"><a id="enter" >LOGIN</a></li>
+                <li class="to-tape">TAPE</li>
             </ul>
         </nav>
     </div>
@@ -30,42 +32,76 @@
 </section>
 <section class="bottom-line">
     <div class="container">
-        <form>
             <button class="add-button" type="submit">ADD PHOTO</button>
-        </form>
     </div>
 </section>
 <section class="main">
     <div class="container">
         <aside class="sidebar">
             <div class="dark">
-                <form class="filter">
+                <div class="filter">
                     <div>
                         <label>AUTHOR'S NAME</label><br>
                         <input type="text" placeholder="Name...">
                     </div>
                     <div>
                         <label><br>DATE</label><br>
-                        <input type="date" auto><br>
-                        <input type="date" value="To">
+                        <input type="date" auto id="from"><br>
+                        <input type="date" id ="to">
                     </div>
                     <div>
                         <label><br>HASHTAGS</label><br>
                         <input type="text" placeholder="#" maxlength="20">
                     </div>
-                    <button type="submit" class="apply-button">Apply</button>
-                </form>
+                    <button type="reset" class="clear-button">Clear</button>
+                </div>
             </div>
         </aside>
         <article class="main-col">
             <ul class="photos">
             </ul>
             <div class="more">
-                <form>
-                    <button class="more-button">More</button>
-                </form>
+                <button class="more-button">More</button>
             </div>
         </article>
+        <aside class="log-form">
+            <div class="light">
+                <div class="log">
+                    <form class="form-inner">
+                        <h3>Authorization</h3>
+                        <label for="user">Username<span class="red-star">*</span></label>
+                        <input type="text" id="user" maxlength="30" autocomplete="off">
+                        <label for="password">Password<span class="red-star">*</span></label>
+                        <input id="password" type="password" maxlength="30">
+                        <p class="error-auth">*Required fields</p>
+                        <button class="enter-button" type="submit">
+                            <span>Login</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        <aside class="hidden-add">
+            <div class="add-form-bg">
+                <form class="add-change-form">
+                    <h3 class="post-author">Author: </h3>
+                    <h3 class="post-date">Date: </h3>
+                    <div id="input-area">
+                        <div class="fields">
+                            <div class="dropzone" id="dropzone"><span class="inner-text">Drop file here*</span></div>
+                            <div class="required">
+                                <p class="error-auth">*Required fields</p>
+                            </div>
+                            <textarea maxlength="200" autocomplete="off" id="post-description" placeholder="Description...(>10)*"></textarea>
+                            <textarea maxlength="200" autocomplete="off" id="post-tags" placeholder="Tags..."></textarea>
+                        </div>
+                        <div class="submit-post">
+                            <button type="submit" class="add-submit-btn">SUBMIT</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </aside>
     </div>
 </section>
 <footer class="footer">
@@ -74,6 +110,7 @@
     <p> | Copyright &copy; Make a moment, 2019</p>
 </footer>
 </body>
+<script src="PageController.js"></script>
 <script src="PostList.js"></script>
 <script src="View.js"></script>
 <script src="GlobalFunctions.js"></script>

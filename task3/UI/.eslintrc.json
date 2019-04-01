@@ -1,7 +1,8 @@
 {
     "parserOptions": {
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
+    "extends": "eslint-config-google",
     "parser": "babel-eslint",
     "env": {
         "browser": true,
