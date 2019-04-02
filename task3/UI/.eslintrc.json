@@ -10,7 +10,9 @@
     },
     "rules": {
         "require-jsdoc": "off",
-        "linebreak-style": ["error", "windows"],
+        "func-call-spacing": "warn",
+        "no-invalid-this": "off",
+        "linebreak-style": "off",
         "indent": "off",
         "no-console": "off",
         "quotes": ["error", "single"],

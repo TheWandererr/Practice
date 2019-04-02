@@ -54,7 +54,7 @@ class View {
         const requiredPost = document.getElementById(post.id);
         const likesField = requiredPost.getElementsByClassName(View._LIKES_COUNT_CLASS)[0];
         likesField.innerHTML = `${post.likes.length} likes`;
-        const btnLike = isLike? requiredPost.getElementsByClassName(View._LIKE_BUTTON_CLASS)[0]:
+        const btnLike = isLike ? requiredPost.getElementsByClassName(View._LIKE_BUTTON_CLASS)[0]:
             requiredPost.getElementsByClassName(View._LIKED_BUTTON_CLASS)[0];
         btnLike.outerHTML = self._createLikeButton(post);
     }
@@ -81,37 +81,24 @@ class View {
     }
     static postsAuthSwap() {
         const hidePosts = !View.arePostsHidden();
-        View._changeFilterDisplay(hidePosts);
-        View._changePostsDisplay(hidePosts);
-        View._changeAuthDisplay(hidePosts);
-        View._updHeaderOnSwap(hidePosts);
-        View._changeBottomLineDisplay(hidePosts);
-        View._changeShowDisplay(hidePosts);
-        View._changeMainBackground(hidePosts);
-    }
-    static postsAddFormSwap(event, hidePosts = true) {
-        if (!View.arePostsHidden()) {
-            View._changePostsDisplay(hidePosts);
-            View._changeFilterDisplay(hidePosts);
-            View._changeAddFormDisplay(!hidePosts);
-            View._changeAddFormContent(event, hidePosts);
-            View._changeAddButtonText(hidePosts);
-        } else {
-            View._changePostsDisplay(!hidePosts);
-            View._changeFilterDisplay(!hidePosts);
-            View._changeAddFormDisplay(hidePosts);
-            View._changeAddFormContent(event, !hidePosts);
-            View._changeAddButtonText(!hidePosts);
-        }
+        View._makeGlobalChanges(hidePosts);
+        View._makeChangesToTape(hidePosts);
     }
     static addFormAuthSwap() {
         const hideAdd = !View.isAddFormHidden();
-        View._changeAuthDisplay(hideAdd);
-        View._changeAddFormDisplay(hideAdd);
-        View._changeBottomLineDisplay(hideAdd);
-        View._changeShowDisplay(hideAdd);
-        View._changeMainBackground(hideAdd);
-        View._updHeaderOnSwap(true);
+        View._makeGlobalChanges(hideAdd);
+        View._makeChangesToAddForm(hideAdd);
+    }
+    static postsAddFormSwap(event, hidePosts = true) {
+        if (!View.arePostsHidden()) {
+            View._makeChangesToTape(hidePosts);
+            View._makeChangesToAddForm(!hidePosts);
+            View._changeAddFormContent(event, hidePosts);
+        } else {
+            View._makeChangesToTape(!hidePosts);
+            View._makeChangesToAddForm(hidePosts);
+            View._changeAddFormContent(event, !hidePosts);
+        }
     }
     static deleteContentFromAddForm() {
         const dropArea = document.getElementById(PageController._DROP_ZONE_ID);
@@ -119,27 +106,26 @@ class View {
         View._deleteDescriptionContent();
         View._deleteHashTagsContent();
     }
+    static _makeChangesToAddForm(hideAdd) {
+        View._changeAddFormDisplay(hideAdd);
+        View._changeAddButtonText(!hideAdd);
+    }
+    static _makeChangesToTape(hidePosts) {
+        View._changeFilterDisplay(hidePosts);
+        View._changePostsDisplay(hidePosts);
+    }
+    static _makeGlobalChanges(hidePosts) {
+        View._changeAuthDisplay(hidePosts);
+        View._changeBottomLineDisplay(hidePosts);
+        View._changeShowDisplay(hidePosts);
+        View._changeMainBackground(hidePosts);
+        View._updHeaderOnSwap(hidePosts);
+    }
     static _loadContentToAddForm(post) {
         const dropArea = document.getElementById(PageController._DROP_ZONE_ID);
         View.changeDropZoneAppearance(dropArea, post.photoLink);
         View._loadDescriptionContent(post.description);
         View._loadHashTagsContent(post.hashTags);
-    }
-    static _changeAddFormContent(event, hide) {
-        if (hide) {
-            const authorArea = document.getElementsByClassName(View._POST_AUTHOR_CLASS)[0];
-            authorArea.innerHTML = document.getElementById(View._USERNAME_ID).textContent;
-            const dateArea = document.getElementsByClassName(View._POST_DATE_CLASS)[0];
-            const post = Global.getPostById(event.target.parentElement.getAttribute('id'));
-            dateArea.innerHTML = post?dateArea.innerHTML =
-                View._formatDate(post.creationDate):View._formatDate(new Date().toString());
-            if (event.target.className !== View._ADD_BUTTON_CLASS) {
-                View._loadContentToAddForm(post);
-                View._changeAddFormId(post.id);
-            }
-        } else {
-            View.deleteContentFromAddForm();
-        }
     }
     static _loadHashTagsContent(what) {
         const where = document.getElementById(View._POST_TAGS_ID);
@@ -176,6 +162,22 @@ class View {
         });
         return `${year}.${fixedValues[0]}.${fixedValues[1]} ${fixedValues[2]}:${fixedValues[3]}`;
     }
+    static _changeAddFormContent(event, hide) {
+        if (hide) {
+            const authorArea = document.getElementsByClassName(View._POST_AUTHOR_CLASS)[0];
+            authorArea.innerHTML = document.getElementById(View._USERNAME_ID).textContent;
+            const dateArea = document.getElementsByClassName(View._POST_DATE_CLASS)[0];
+            const post = Global.getPostById(event.target.parentElement.getAttribute('id'));
+            dateArea.innerHTML = post ? dateArea.innerHTML =
+                View._formatDate(post.creationDate) : View._formatDate(new Date().toString());
+            if (event.target.className !== View._ADD_BUTTON_CLASS) {
+                View._loadContentToAddForm(post);
+                View._changeAddFormId(post.id);
+            }
+        } else {
+            View.deleteContentFromAddForm();
+        }
+    }
     static _changeAddButtonText(hide) {
         const addButton = document.getElementsByClassName(View._ADD_BUTTON_CLASS)[0];
         if (hide) {
@@ -186,20 +188,20 @@ class View {
     }
     static _changeFooterMargin(hide) {
         const footer = document.querySelector(`.${View._FOOTER_CLASS}`);
-        footer.style.marginTop = hide?'0':'3%';
+        footer.style.marginTop = hide ? '0' : '3%';
     }
     static _changeMainBackground(hide) {
-        const mainBg = document.querySelector(hide?`.${View._MAIN_CLASS}`: `.${View._MAIN_LOGIN_CLASS}`);
-        mainBg.className = hide? View._MAIN_LOGIN_CLASS:View._MAIN_CLASS;
+        const mainBg = document.querySelector(hide ? `.${View._MAIN_CLASS}` : `.${View._MAIN_LOGIN_CLASS}`);
+        mainBg.className = hide ? View._MAIN_LOGIN_CLASS : View._MAIN_CLASS;
         View._changeFooterMargin(hide);
     }
     static _changeShowDisplay(hide) {
-        const show = document.querySelector(hide?`.${View._SHOW_CLASS}`: `.${View._HIDDEN_SHOW_CLASS}`);
-        show.className = hide? View._HIDDEN_SHOW_CLASS:View._SHOW_CLASS;
+        const show = document.querySelector(hide ? `.${View._SHOW_CLASS}` : `.${View._HIDDEN_SHOW_CLASS}`);
+        show.className = hide ? View._HIDDEN_SHOW_CLASS : View._SHOW_CLASS;
     }
     static _changeBottomLineDisplay(hide) {
-        const line = document.querySelector(hide?`.${View._BOTTOM_LINE_CLASS}`: `.${View._HIDDEN_BOTTOM_LINE_CLASS}`);
-        line.className = hide? View._HIDDEN_BOTTOM_LINE_CLASS:View._BOTTOM_LINE_CLASS;
+        const line = document.querySelector(hide ? `.${View._BOTTOM_LINE_CLASS}` : `.${View._HIDDEN_BOTTOM_LINE_CLASS}`);
+        line.className = hide ? View._HIDDEN_BOTTOM_LINE_CLASS : View._BOTTOM_LINE_CLASS;
     }
     static _changeAuthDisplay(hide) {
         const loginForm = document
@@ -211,8 +213,8 @@ class View {
         }
     }
     static _changePostsDisplay(hidePosts) {
-        const posts = document.querySelector(hidePosts?`.${PageController._MAIN_TAPE_CLASS}`: `.${View._HIDDEN_POSTS_CLASS}`);
-        posts.className = hidePosts? View._HIDDEN_POSTS_CLASS: PageController._MAIN_TAPE_CLASS;
+        const posts = document.querySelector(hidePosts ? `.${PageController._MAIN_TAPE_CLASS}` : `.${View._HIDDEN_POSTS_CLASS}`);
+        posts.className = hidePosts ? View._HIDDEN_POSTS_CLASS : PageController._MAIN_TAPE_CLASS;
     }
     static _changeAddFormId(id) {
         const form = document
@@ -221,13 +223,13 @@ class View {
     }
     static _changeAddFormDisplay(hiddenPosts) {
         const form = document
-            .querySelector(!hiddenPosts?`.${View._HIDDEN_ADD_CHANGE_FORM_CLASS}`: `.${View._ADD_CHANGE_POST}`);
-        form.className = !hiddenPosts?View._ADD_CHANGE_POST: View._HIDDEN_ADD_CHANGE_FORM_CLASS;
+            .querySelector(!hiddenPosts ? `.${View._HIDDEN_ADD_CHANGE_FORM_CLASS}` : `.${View._ADD_CHANGE_POST}`);
+        form.className = !hiddenPosts ? View._ADD_CHANGE_POST : View._HIDDEN_ADD_CHANGE_FORM_CLASS;
     }
     static _changeFilterDisplay(hidePosts) {
         const filterShell = document
-            .querySelector(hidePosts?`.${PageController._FILTER_SHELL_CLASS}`: `.${View._HIDDEN_FILTER_CLASS}`);
-        filterShell.className = hidePosts?View._HIDDEN_FILTER_CLASS: PageController._FILTER_SHELL_CLASS;
+            .querySelector(hidePosts ? `.${PageController._FILTER_SHELL_CLASS}` : `.${View._HIDDEN_FILTER_CLASS}`);
+        filterShell.className = hidePosts ? View._HIDDEN_FILTER_CLASS : PageController._FILTER_SHELL_CLASS;
     }
     static _clearInnerText(htmlElement) {
         htmlElement.innerText = '';
@@ -289,16 +291,16 @@ class View {
                 `;
     }
     _createLikeButton(post) {
-        return `<button class="${!this._user.unLog?post.likes.includes(this._user.name)?
-            View._LIKED_BUTTON_CLASS: View._LIKE_BUTTON_CLASS: View._HIDDEN_ELEMENT_CLASS}"
+        return `<button class="${!this._user.unLog ? post.likes.includes(this._user.name) ?
+            View._LIKED_BUTTON_CLASS : View._LIKE_BUTTON_CLASS : View._HIDDEN_ELEMENT_CLASS}"
                 type="submit"><i class="fa fa-heart" aria-hidden="true"></i>♥ Like</button>`;
     }
     _createDeleteButton(post) {
-        return `<button class="${post.author === this._user.name? View._DELETE_BUTTON_CLASS: View._HIDDEN_ELEMENT_CLASS}"
+        return `<button class="${post.author === this._user.name ? View._DELETE_BUTTON_CLASS : View._HIDDEN_ELEMENT_CLASS}"
                     type="submit">Delete</button>`;
     }
     _createChangeButton(post) {
-        return `<button class="${post.author === this._user.name? View._CHANGE_BUTTON_CLASS: View._HIDDEN_ELEMENT_CLASS}"
+        return `<button class="${post.author === this._user.name ? View._CHANGE_BUTTON_CLASS : View._HIDDEN_ELEMENT_CLASS}"
                      type="submit">Change</button>`;
     }
     _createPostsFragment(posts) {
