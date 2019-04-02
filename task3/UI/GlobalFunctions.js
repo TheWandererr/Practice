@@ -237,7 +237,7 @@ const Global = (function() {
         return sessionStorage.getItem('username');
     }
     function createUser() {
-        return {name: name, unLog: unLog};
+        return {name, unLog};
     }
     return {
         getPostById: function(id) {
@@ -297,7 +297,7 @@ const Global = (function() {
             return false;
         },
         logout: function() {
-            user.name = undefined;
+            user.name = '';
             user.unLog = true;
             view.updateUserInfo(user);
             view.getPage(postList.getPage(skip, get));

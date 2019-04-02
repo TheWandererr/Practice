@@ -39,22 +39,22 @@
     <div class="container">
         <aside class="sidebar">
             <div class="dark">
-                <div class="filter">
+                <form class="filter">
                     <div>
                         <label>AUTHOR'S NAME</label><br>
-                        <input type="text" placeholder="Name...">
+                        <input type="text" placeholder="Name..." name="author">
                     </div>
                     <div>
                         <label><br>DATE</label><br>
-                        <input type="date" auto id="from"><br>
-                        <input type="date" id ="to">
+                        <input type="date" name="dateFrom"><br>
+                        <input type="date" name="dateTo">
                     </div>
                     <div>
                         <label><br>HASHTAGS</label><br>
-                        <input type="text" placeholder="#" maxlength="20">
+                        <input type="text" placeholder="#" name="hashTags">
                     </div>
                     <button type="reset" class="clear-button">Clear</button>
-                </div>
+                </form>
             </div>
         </aside>
         <article class="main-col">
@@ -92,8 +92,8 @@
                             <div class="required">
                                 <p class="error-auth">*Required fields</p>
                             </div>
-                            <textarea maxlength="200" autocomplete="off" id="post-description" placeholder="Description...(>10)*"></textarea>
-                            <textarea maxlength="200" autocomplete="off" id="post-tags" placeholder="Tags..."></textarea>
+                            <textarea minlength="10" maxlength="200" autocomplete="off" id="post-description" placeholder="Description...*" required></textarea>
+                            <textarea autocomplete="off" id="post-tags" placeholder="Tags..."></textarea>
                         </div>
                         <div class="submit-post">
                             <button type="submit" class="add-submit-btn">SUBMIT</button>

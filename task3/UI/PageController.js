@@ -15,6 +15,14 @@ class PageController {
     static _DROP_ZONE_ID = 'dropzone';
     static _DRAG_OVER_CLASS = 'dropzone-dragover';
     static _FORM_FIELDS_CLASS = 'fields';
+    static _FILTER_AUTHOR_FIELD = 'author';
+    static _FILTER_DATE_FROM_FIELD = 'dateFrom';
+    static _FILTER_DATE_TO_FIELD = 'dateTo';
+    static _FILTER_HASHTAGS_FIELD = 'hashTags';
+    static _TRIM_SIZE_START = 2;
+    static _TRIM_SIZE_END = -1;
+    static _TYPING_TIMER = 0;
+    static _DONE_TYPING_INTERVAL = 1000;
     constructor(user) {
         this._user = user;
         PageController._createPostButtonsHandler();
@@ -30,12 +38,20 @@ class PageController {
     static _createRawPost(fields) {
         return {
             photoLink: fields.curBg.style.background.substring(
-                fields.curBg.style.background.indexOf('(') + 2,
-                fields.curBg.style.background.lastIndexOf(')') - 1),
+                fields.curBg.style.background.indexOf('(') + PageController._TRIM_SIZE_START,
+                fields.curBg.style.background.lastIndexOf(')') + PageController._TRIM_SIZE_END),
             description: fields.curDescription.value,
             hashTags: PageController._deleteRedundantFromTags(fields.curTags.value.trim()
                 .replace(/\s*[#+-,;. ]+\s*/g, '#')
                 .split('#')),
+        };
+    }
+    static _createFilterConfig(formElements) {
+        return {
+            author: formElements.namedItem(PageController._FILTER_AUTHOR_FIELD).value,
+            dateFrom: formElements.namedItem(PageController._FILTER_DATE_FROM_FIELD).value,
+            dateTo: formElements.namedItem(PageController._FILTER_DATE_TO_FIELD).value,
+            hashTags: formElements.namedItem(PageController._FILTER_HASHTAGS_FIELD).value.trim().split(/[.,;# ]/),
         };
     }
     static _pushUserInfo(user) {
@@ -49,9 +65,10 @@ class PageController {
             item.value = '';
         });
     }
-    static _fixFilterParams(params) {
+    static _fixFilterConfig(params) {
+        params.hashTags = PageController._deleteRedundantFromTags(params.hashTags);
         const fixedFilter = {};
-        Object.keys(params).filter((item) => params[item].toString().length > 0).forEach((field) => {
+        Object.keys(params).filter((item) => params[item].toString().length).forEach((field) => {
             switch (field) {
                 case 'hashTags':
                 case 'author': {
@@ -90,7 +107,16 @@ class PageController {
     }
     static _createFilterHandle() {
         const filter = document.querySelector(`.${PageController._FILTER_CLASS}`);
-        filter.addEventListener('input', PageController._handleFilterInput);
+        filter.addEventListener('keydown', function() {
+            clearTimeout(PageController._TYPING_TIMER);
+        });
+        filter.addEventListener('keyup', function() {
+            clearTimeout(PageController._TYPING_TIMER);
+            PageController._TYPING_TIMER = setTimeout(function() {
+                const params = PageController._createFilterConfig(filter.elements);
+                Global.filterPosts(PageController._fixFilterConfig(params));
+            }, PageController._DONE_TYPING_INTERVAL);
+        });
         filter.addEventListener('click', PageController._handleFilterClearOn);
     }
     static _createLogOutHandler() {
@@ -147,19 +173,6 @@ class PageController {
         if (event.target.className === View._MORE_BUTTON_CLASS) {
             Global.showMore();
         }
-    }
-    static _handleFilterInput(event) {
-        let filter = event.currentTarget;
-        const inputs = filter.querySelectorAll('input');
-        const params = {
-            author: inputs[0].value,
-            dateFrom: inputs[1].value,
-            dateTo: inputs[2].value,
-            hashTags: inputs[3].value.trim().split(/[.,;# ]/),
-        };
-        params.hashTags = PageController._deleteRedundantFromTags(params.hashTags);
-        filter = PageController._fixFilterParams(params);
-        Global.filterPosts(filter);
     }
     static _handleFilterClearOn(event) {
         if (event.target.tagName !== 'BUTTON') {

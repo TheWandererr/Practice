@@ -23,6 +23,7 @@ class PostList {
     };
     static _validateHelper = {
         description: function(decription) {
+            decription = decription.replace(/\r?\n/g, '').trim();
             return decription.length >= PostList._MIN_DESCRIPTION_LENGTH &&
                 decription.length <= PostList._MAX_DESCRIPTION_LENGTH;
         },
@@ -42,14 +43,14 @@ class PostList {
     }
     getPage(skip = 0, get = 10, filterConfig = {}) {
         const self = this;
-        let filteredPosts = this._posts.slice();
+        let filteredPosts = self._posts.slice();
         Object.keys(filterConfig).forEach(function(field) {
             if (PostList._filterHelper[field]) {
                 filteredPosts = PostList._filterHelper[field](filteredPosts,
                     filterConfig[field]);
             }
         });
-        return filteredPosts.sort(self._sortDownByDate).slice(skip, skip + get);
+        return filteredPosts.sort(PostList._sortDownByDate).slice(skip, skip + get);
     }
     edit(id, post) {
         if (post) {
@@ -69,7 +70,7 @@ class PostList {
                         break;
                     }
                     case 'hashTags': {
-                        objectToEdit[item] = this._toLowerCase(post[item]);
+                        objectToEdit[item] = PostList._toLowerCase(post[item]);
                     }
                 }
             });
@@ -89,7 +90,7 @@ class PostList {
                 Math.random()).toString();
             post.author = username;
             post.likes = [];
-            post.hashTags = this._toLowerCase(post.hashTags);
+            post.hashTags = PostList._toLowerCase(post.hashTags);
             this._posts.push(post);
             PostList.save(post, {add: true});
             return true;
@@ -184,14 +185,18 @@ class PostList {
         return tag.trim().length <= PostList._MAX_TAG_LENGTH && tag.trim().length > 0;
     }
     static _isContainTag(where, what) {
-        const tags = what.filter((item) => where.includes(item));
+        const tags = what.filter((item) => PostList._isContainPart(where, item));
         return tags.length > 0 && where.length > 0;
     }
-    _sortDownByDate(a, b) {
+    static _isContainPart(where, tag) {
+        const res = where.filter((item) => item.includes(tag));
+        return res.length > 0;
+    }
+    static _sortDownByDate(a, b) {
         return b.creationDate - a.creationDate;
     }
-    _toLowerCase(arr) {
-        return arr.toString().toLowerCase().split(',');
+    static _toLowerCase(arr) {
+        return arr.length ? arr.toString().toLowerCase().split(',') : [];
     }
     _fixPostDate(post) {
         post.creationDate = PostList.strToDate(post.creationDate);
