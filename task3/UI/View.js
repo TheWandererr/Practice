@@ -111,6 +111,7 @@ class View {
         View._changeBottomLineDisplay(hideAdd);
         View._changeShowDisplay(hideAdd);
         View._changeMainBackground(hideAdd);
+        View._changeAddButtonText(!hideAdd);
         View._updHeaderOnSwap(true);
     }
     static deleteContentFromAddForm() {
