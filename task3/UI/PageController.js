@@ -37,9 +37,9 @@ class PageController {
     }
     static _createRawPost(fields) {
         return {
-            photoLink: fields.curBg.style.background.substring(
-                fields.curBg.style.background.indexOf('(') + PageController._TRIM_SIZE_START,
-                fields.curBg.style.background.lastIndexOf(')') + PageController._TRIM_SIZE_END),
+            photoLink: fields.curBg.style.backgroundImage.substring(
+                fields.curBg.style.backgroundImage.indexOf('(') + PageController._TRIM_SIZE_START,
+                fields.curBg.style.backgroundImage.lastIndexOf(')') + PageController._TRIM_SIZE_END),
             description: fields.curDescription.value,
             hashTags: PageController._deleteRedundantFromTags(fields.curTags.value.trim()
                 .replace(/\s*[#+-,;. ]+\s*/g, '#')
