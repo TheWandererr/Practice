@@ -67,7 +67,7 @@ class View {
         const innerText = dropZone.children[0];
         if (image) {
             View._clearInnerText(innerText);
-            dropZone.style.background = `url("${image}") no-repeat`;
+            dropZone.style.backgroundImage = `url("${image}")`;
         } else {
             innerText.innerText = 'Drop file here';
             dropZone.style.background = '';

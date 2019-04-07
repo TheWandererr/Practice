@@ -469,17 +469,22 @@ ul {
     background: #f6f6f6;
     padding-top: 25%;
     padding-left: 5px;
-    min-height: 300px;
+    background-origin: border-box;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    min-height: 38vh;
 }
 .fields {
     text-align: center;
 }
 .dropzone-dragover {
-    width: 100%;
-    min-height: 300px;
+    background-origin: border-box;
+    background-size: 100% 100%;
     padding-top: 25%;
-    text-align: center;
+    padding-left: 5px;
+    min-height: 38vh;
     background: #f6f6f6;
+    background-repeat: no-repeat;
 }
 .add-change-form h3 {
     max-width: 100%;
@@ -718,7 +723,7 @@ article .more {
         width: 96%;
         margin-left: 0;
     }
-    .dropzone {
+    .dropzone, .dropzone-dragover {
         min-height: 120px;
     }
     .header nav,
@@ -846,8 +851,8 @@ article .more {
     .add-change-form h3 {
         font-size: 75%;
     }
-    .dropzone {
-        min-height: 100px;
+    .dropzone, .dropzone-dragover{
+        min-height: 10vh;
     }
     .add-change-form textarea {
         padding: 1px 2px 1px 2px;
