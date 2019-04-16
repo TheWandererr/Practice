@@ -1,4 +1,4 @@
-package main.com.bsu.exadel.practice;
+package main.com.bsu.exadel.practice.servlets;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -7,8 +7,7 @@ import java.io.IOException;
 
 import org.json.simple.*;
 
-
-public class checkServlet extends HttpServlet {
+public class CheckServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
