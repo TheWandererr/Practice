@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="author" content="Artyom Konashchenko">
+    <title>Make A Moment | Home</title>
+    <link rel="stylesheet" href="resources/css/styles.css">
+</head>
+<body class="body">
+<header class="header">
+    <div class="container">
+        <div class="logo">
+            <a href="index.html"><span class="highlight">Make</span> A Moment</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a id="username" href="index.html"></a></li>
+                <li class="line"><a id="exit">LOGOUT</a></li>
+                <li class="line"><a id="enter">LOGIN</a></li>
+                <li class="to-tape">TAPE</li>
+            </ul>
+        </nav>
+    </div>
+</header>
+<section class="show">
+    <div class="container">
+        <h1><span class="highlight4">See</span> <span class="highlight5"> the</span><span
+                class="highlight6"> world</span><span class="highlight1"> diff</span><span
+                class="highlight2">erent</span><span class="highlight3">ly</span></h1>
+    </div>
+</section>
+<section class="bottom-line">
+    <div class="container">
+        <button class="add-button" type="submit">ADD PHOTO</button>
+    </div>
+</section>
+<section class="main">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="dark">
+                <form class="filter" method="post">
+                    <div>
+                        <label>AUTHOR'S NAME</label><br>
+                        <input type="text" placeholder="Name..." name="author">
+                    </div>
+                    <div class="filter-date-input">
+                        <label><br>DATE</label><br>
+                        <input type="date" placeholder="From" name="dateFrom"><br>
+                        <input type="date" placeholder="To" name="dateTo">
+                    </div>
+                    <div>
+                        <label><br>HASHTAGS</label><br>
+                        <input type="text" placeholder="#" name="hashTags">
+                    </div>
+                    <button type="reset" class="clear-button">Clear</button>
+                </form>
+            </div>
+        </aside>
+        <article class="main-col">
+            <ul class="photos">
+            </ul>
+            <div class="more">
+                <button class="more-button">More</button>
+            </div>
+        </article>
+        <aside class="log-form">
+            <div class="light">
+                <div class="log">
+                    <form class="form-inner" method="post">
+                        <h3>Authorization</h3>
+                        <label for="user">Username<span class="red-star">*</span></label>
+                        <input type="text" id="user" maxlength="30" autocomplete="off">
+                        <label for="password">Password<span class="red-star">*</span></label>
+                        <input id="password" type="password" maxlength="30">
+                        <p class="error-auth">*Required fields</p>
+                        <button class="enter-button" type="submit">
+                            <span>Login</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        <aside class="hidden-add">
+            <div class="add-form-bg">
+                <form method="post" class="add-change-form" enctype="multipart/form-data">
+                    <h3 class="post-author">Author: </h3>
+                    <h3 class="post-date">Date: </h3>
+                    <div id="input-area">
+                        <div class="fields">
+                            <div id="drop-area">
+                                <div id="gallery"></div>
+                                <p>Upload file or drop image here</p>
+                                <input type="file" id="fileElem" multiple accept="image/*" onchange="PageController.previewFile(this.files[0])">
+                                <label class="choose-button" for="fileElem">Select file</label>
+                            </div>
+                            <div class="required">
+                                <p class="error-auth">*Required fields</p>
+                            </div>
+                            <textarea minlength="10" maxlength="200" autocomplete="off" id="post-description"
+                                      placeholder="Description...*" required></textarea>
+                            <textarea autocomplete="off" id="post-tags" placeholder="Tags..."></textarea>
+                        </div>
+                        <div class="submit-post">
+                            <button type="submit" class="add-submit-btn">SUBMIT</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </div>
+</section>
+<footer class="footer">
+    <p>Konashchenko Artyom | 2 course | 5 group</p>
+    <p>| email: kartem2013@yandex.ru</p>
+    <p> | Copyright &copy; Make a moment, 2019</p>
+</footer>
+</body>
+<script src="resources/js/PageController.js"></script>
+<script src="resources/js/PostList.js"></script>
+<script src="resources/js/View.js"></script>
+<script src="resources/js/GlobalFunctions.js"></script>
+</html>
