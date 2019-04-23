@@ -176,7 +176,7 @@ public class PostList implements ValidateHelper {
                 tmp.setDescription(entry.getValue());
             }
             if (key.equals(HASHTAGS)) {
-                tmp.setHashTags(Arrays.asList(entry.getValue().split("[,]+")));
+                tmp.setHashTags(PhotoPost.fixTags(entry.getValue()));
             }
             if (key.equals(PHOTO_LINK)) {
                 tmp.setPhotoLink(entry.getValue());

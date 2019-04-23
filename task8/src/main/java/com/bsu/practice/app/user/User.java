@@ -1,6 +1,5 @@
 package com.bsu.practice.app.user;
 
-import com.bsu.practice.app.collection.PhotoPost;
 
 public class User {
 
@@ -20,14 +19,6 @@ public class User {
         return instance;
     }
 
-    public boolean hasWritePermission(PhotoPost reqPost) {
-        return reqPost != null && username.equals(reqPost.getAuthor()) && logged;
-    }
-
-    public boolean hasWritePermission() {
-        return logged;
-    }
-
     public void setLogged(boolean logged) {
         this.logged = logged;
     }
@@ -38,5 +29,9 @@ public class User {
 
     public String getUsername() {
         return username;
+    }
+
+    public boolean isLogged() {
+        return logged;
     }
 }
