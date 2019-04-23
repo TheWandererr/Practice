@@ -1,6 +1,7 @@
 package com.bsu.practice.app.collection;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PhotoPost {
     private String id;
@@ -13,7 +14,6 @@ public class PhotoPost {
 
     public PhotoPost(String author, String desc, String link, List<String> hashTags) {
         this.id = UUID.randomUUID().toString();
-        //temp
         this.author = author;
         this.createdAt = new Date();
         this.likes = new ArrayList<>();
@@ -30,16 +30,6 @@ public class PhotoPost {
         this.photoLink = post.photoLink;
         this.description = post.description;
         this.likes = post.likes;
-    }
-
-    public PhotoPost() {
-        this.id = "";
-        this.author = "";
-        this.createdAt = new Date();
-        this.hashTags = new ArrayList<>();
-        this.photoLink = "";
-        this.description = "";
-        this.likes = new ArrayList<>();
     }
 
     public Date getCreatedAt() {
@@ -88,7 +78,7 @@ public class PhotoPost {
 
     public static List<String> fixTags(String tags) {
         if (tags != null) {
-            return Arrays.asList(tags.split("[,]+"));
+            return Arrays.stream(tags.split("[,]+")).filter(tag->!tag.equals("")).collect(Collectors.toList());
         } else return new ArrayList<>();
     }
 

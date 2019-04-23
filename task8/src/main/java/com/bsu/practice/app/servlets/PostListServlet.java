@@ -2,6 +2,7 @@ package com.bsu.practice.app.servlets;
 
 import com.bsu.practice.app.collection.PhotoPost;
 import com.bsu.practice.app.collection.PostList;
+import com.bsu.practice.app.session.SessionController;
 import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
@@ -17,8 +18,13 @@ import java.util.Map;
 public class PostListServlet extends HttpServlet {
 
     private PostList postsCollection;
-    //private static final int GMT_LENGTH = 3;
-    //private static final int CHAR_LENGTH = 1;
+    private static final String DATE_TO = "dateTo";
+    private static final String DATE_FROM = "dateFrom";
+    private static final String AUTHOR = "author";
+    private static final String TAGS = "hashTags";
+    private static final String SKIP = "skip";
+    private static final String GET = "get";
+    private static final Gson gson = new Gson();
 
     @Override
     public void init() throws ServletException {
@@ -26,48 +32,38 @@ public class PostListServlet extends HttpServlet {
         postsCollection = PostList.getInstance();
     }
 
-    /*private static String fixDateConversion(String wrongDate) {
-        StringBuilder sb = new StringBuilder(wrongDate);
-        int index = sb.lastIndexOf("GMT") + GMT_LENGTH;
-        if (sb.charAt(index + CHAR_LENGTH) != '+') {
-            sb.replace(index, index + CHAR_LENGTH, "+");
-        }
-        return sb.toString();
-    }*/
-
     private Map<String, String> createFilterConf(HttpServletRequest req) {
         Map<String, String> params = new HashMap<>();
-        String author = req.getParameter("author");
-        String dateTo = req.getParameter("dateTo");
-        String dateFrom = req.getParameter("dateFrom");
-        String hashTags = req.getParameter("hashTags");
+        String author = req.getParameter(AUTHOR);
+        String dateTo = req.getParameter(DATE_TO);
+        String dateFrom = req.getParameter(DATE_FROM);
+        String hashTags = req.getParameter(TAGS);
         if (author != null) {
-            params.put("author", author);
+            params.put(AUTHOR, author);
         }
         if (dateTo != null) {
-            params.put("dateTo", dateTo);//fixDateConversion(dateTo));
+            params.put(DATE_TO, dateTo);//fixDateConversion(dateTo));
         }
         if (dateFrom != null) {
-            params.put("dateFrom", dateFrom);//fixDateConversion(dateFrom));
+            params.put(DATE_FROM, dateFrom);//fixDateConversion(dateFrom));
         }
         if (hashTags != null) {
-            params.put("hashTags", hashTags);
+            params.put(TAGS, hashTags);
         }
         return params;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Gson gson = new Gson();
         String answer;
         Map<String, String> filter = createFilterConf(req);
         try {
-            int skip = Integer.parseInt(req.getParameter("skip"));
-            int get = Integer.parseInt(req.getParameter("get"));
+            int skip = Integer.parseInt(req.getParameter(SKIP));
+            int get = Integer.parseInt(req.getParameter(GET));
             List<PhotoPost> posts = postsCollection.getPage(skip, get, filter);
             answer = gson.toJson(posts);
         } catch (Exception pe) {
-            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_PRECONDITION_FAILED);
             return;
         }
         resp.setStatus(HttpServletResponse.SC_OK);

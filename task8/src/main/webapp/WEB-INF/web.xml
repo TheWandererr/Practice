@@ -43,6 +43,14 @@
         <servlet-name>PostListServlet</servlet-name>
         <servlet-class>com.bsu.practice.app.servlets.PostListServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>LikeServlet</servlet-name>
+        <servlet-class>com.bsu.practice.app.servlets.LikePostServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LikeServlet</servlet-name>
+        <url-pattern>/photo-post/like/*</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>PostListServlet</servlet-name>
         <url-pattern>/photo-posts</url-pattern>
