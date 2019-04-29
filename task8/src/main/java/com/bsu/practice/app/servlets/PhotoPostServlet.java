@@ -190,16 +190,5 @@ public class PhotoPostServlet extends HttpServlet {
         catch (Exception e) {
             SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-        /*try (FileInputStream fin = new FileInputStream(path + photoLink);
-             BufferedInputStream bin = new BufferedInputStream(fin);
-             BufferedOutputStream bout = new BufferedOutputStream(resp.getOutputStream())) {
-            int ch;
-            final int NOT_READABLE = -1;
-            while ((ch = bin.read()) != NOT_READABLE) {
-                bout.write(ch);
-            }
-        } catch (Exception e) {
-            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }*/
     }
 }
