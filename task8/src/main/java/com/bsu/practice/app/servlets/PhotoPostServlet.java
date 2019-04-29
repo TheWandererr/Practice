@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.annotation.MultipartConfig;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -26,6 +28,7 @@ public class PhotoPostServlet extends HttpServlet {
     private User user;
     public static final int SINGLE_PART_REQUEST = 0;
     private static final int MAX_SIZE = 1024 * 1024 * 10;
+    private static final int MAX_BUFFER = 1024 * 5;
     private static final String ID = "id";
     private static final String PHOTO_LINK = "photoLink";
     private static final String DESCRIPTION = "description";
@@ -70,6 +73,8 @@ public class PhotoPostServlet extends HttpServlet {
             postsCollection.remove(target);
             resp.setStatus(HttpServletResponse.SC_OK);
             SessionController.sendSuccessMess(resp);
+        } else {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -81,10 +86,12 @@ public class PhotoPostServlet extends HttpServlet {
             return;
         }
         PhotoPost target = postsCollection.get(req.getParameter(ID));
-        if (SessionController.isOperationAllowed(target, user, resp)) {
+        if (SessionController.hasWritePermission(user) && target!= null) {
             String answer = gson.toJson(target);
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getOutputStream().println(answer);
+        } else {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -130,7 +137,7 @@ public class PhotoPostServlet extends HttpServlet {
             return SINGLE_PART_REQUEST;
         }*/
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        File tempDir = new File("/WEB-INF/uploads/");//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
+        File tempDir = new File("/WEB-INF/");//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
         factory.setRepository(tempDir);
         ServletFileUpload upload = new ServletFileUpload(factory);
         upload.setSizeMax(MAX_SIZE);
@@ -170,17 +177,17 @@ public class PhotoPostServlet extends HttpServlet {
     }
 
     private void sendExistingFile(HttpServletResponse resp, String photoLink) throws IOException {
-        String path = getServletContext().getRealPath("/WEB-INF/uploads/");
-        resp.setContentType("image/jpeg");
-        try (FileInputStream fin = new FileInputStream(path + photoLink);
-             BufferedInputStream bin = new BufferedInputStream(fin);
-             BufferedOutputStream bout = new BufferedOutputStream(resp.getOutputStream())) {
-            int ch;
-            final int NOT_READABLE = -1;
-            while ((ch = bin.read()) != NOT_READABLE) {
-                bout.write(ch);
+        try{
+            String path = getServletContext().getRealPath("/WEB-INF/");
+            resp.setContentType("image/jpeg");
+            InputStream is = Files.newInputStream(Paths.get(path+photoLink));
+            byte[] buffer = new byte[MAX_BUFFER];
+            int read;
+            while((read = is.read(buffer)) > 0) {
+                resp.getOutputStream().write(buffer,0,read);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

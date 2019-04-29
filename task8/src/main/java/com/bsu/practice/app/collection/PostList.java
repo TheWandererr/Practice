@@ -120,6 +120,8 @@ public class PostList implements ValidateHelper {
             firstIndex = skip > filteredPosts.size() ? filteredPosts.size() : skip;
             lastIndex = skip + get > filteredPosts.size() ? filteredPosts.size() : skip + get;
         }
+        System.out.println("start = " + firstIndex);
+        System.out.println("finish = " + lastIndex);
         return filteredPosts.stream().sorted(new Comparator<PhotoPost>() {
             @Override
             public int compare(PhotoPost o1, PhotoPost o2) {

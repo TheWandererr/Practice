@@ -14,8 +14,6 @@ import java.util.Map;
 
 public class LoginServlet extends HttpServlet {
 
-    private static final int LOGOUT = 0;
-    private static final int LOGIN = 1;
     private static final String USERNAME = "username";
     private static final String PASSWORD = "pass";
     private static final Gson gson = new Gson();
@@ -34,31 +32,31 @@ public class LoginServlet extends HttpServlet {
         return map;
     }
 
-    private void initUser(User user, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private boolean initUser(User user, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, String> info = getUserInfo(req);
         if (SessionController.isValidUserData(info.get(USERNAME), info.get(PASSWORD))) {
             user.setLogged(true);
             user.setUsername(info.get(USERNAME));
+            return true;
         } else {
             SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User user = User.getInstance();
-        int operation = user.isLogged() ? LOGOUT : LOGIN;
-        try {
-            if (operation == LOGIN) {
-                initUser(user, req, resp);
-            } else {
-                user.setUsername("");
-                user.setLogged(false);
+        if (user.isLogged()) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        } else {
+            try {
+                if (initUser(user, req, resp)) {
+                    SessionController.sendSuccessMess(resp);
+                }
+            } catch (Exception e) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_UNAUTHORIZED);
             }
-            SessionController.sendSuccessMess(resp);
-        } catch (Exception e) {
-            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_UNAUTHORIZED);
         }
-
     }
 }

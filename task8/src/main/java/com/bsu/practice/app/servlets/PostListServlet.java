@@ -54,18 +54,25 @@ public class PostListServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException{
         String answer;
         Map<String, String> filter = createFilterConf(req);
+        int skip;
+        int get;
         try {
-            int skip = Integer.parseInt(req.getParameter(SKIP));
-            int get = Integer.parseInt(req.getParameter(GET));
-            List<PhotoPost> posts = postsCollection.getPage(skip, get, filter);
-            answer = gson.toJson(posts);
-        } catch (Exception pe) {
+            skip = Integer.parseInt(req.getParameter(SKIP));
+            get = Integer.parseInt(req.getParameter(GET));
+        }
+        catch (NumberFormatException nfe) {
+            skip = 0;
+            get = Integer.MAX_VALUE;
+        }
+        catch (Exception e) {
             SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_PRECONDITION_FAILED);
             return;
         }
+        List<PhotoPost> posts = postsCollection.getPage(skip, get, filter);
+        answer = gson.toJson(posts);
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.setContentType("text/json;charset=UTF-8");
         resp.getOutputStream().print(answer);

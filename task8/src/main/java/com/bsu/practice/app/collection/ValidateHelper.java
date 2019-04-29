@@ -7,6 +7,7 @@ public interface ValidateHelper {
     int MAX_DESCRIPTION_LENGTH = 200;
     int MAX_TAG_LENGTH = 20;
     int MIN_LINK_LENGTH = 1;
+    String UNDEFINED = "undefined";
 
     default boolean isRightDescription(String desc) {
         if(desc == null) {
@@ -26,7 +27,7 @@ public interface ValidateHelper {
     }
 
     default boolean isRightPhotoLink(String link) {
-        if(link == null) {
+        if(link == null || link.equals(UNDEFINED)) {
             return false;
         }
         return link.trim().length() >= MIN_LINK_LENGTH;

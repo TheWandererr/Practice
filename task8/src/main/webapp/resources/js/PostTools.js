@@ -1,5 +1,91 @@
-class PostList {
-    static _MIN_DESCRIPTION_LENGTH = 10;
+class PostTools {
+    static OK = 200;
+    static PHOTO_POST_URL = '/photo-post?';
+    static POST = 'post';
+    static PUT = 'put';
+    static _SKIP = 'skip';
+    static _GET = 'get';
+    static _DELETE = 'delete';
+    static LINK = 'photoLink';
+    static TAGS = 'hashTags';
+    static DESCRIPTION = 'description';
+    static _PHOTO_POSTS_URL = '/photo-posts?';
+    static _PHOTO_POST_LIKE_URL = '/photo-post/like/';
+    static async onError(resp) {
+        // TEMP
+        await resp.json().then((data)=> {
+            console.log(JSON.stringify(data));
+        });
+    }
+    static async onSuccess(resp) {
+        return await resp.json();
+    }
+    static async getPost(id) {
+        const url = `${this.PHOTO_POST_URL}id=${id}`;
+        const resp = await fetch(url, {method: PostTools._GET});
+        if (resp.status !== PostTools.OK) {
+            alert('Error');
+        } else {
+            return PostTools.onSuccess(resp);
+        }
+    }
+    static async getPosts(skip=0, get=10, filterConfig={}) {
+        let url = this._PHOTO_POSTS_URL;
+        const params = [];
+        Object.keys(filterConfig)
+            .forEach((item)=>{
+                params.push(`${item}=${filterConfig[item]}`);
+            });
+        url = `${url}${PostTools._SKIP}=${skip}&${PostTools._GET}=${get}`;
+        if (params) {
+                url = `${url}&${params.join('&')}`;
+            }
+        const resp = await fetch(url);
+        if (resp.status !== PostTools.OK) {
+            alert('Error');
+        } else {
+            return PostTools.onSuccess(resp);
+        }
+    }
+    static async delete(postId) {
+        const self = this;
+        const url = `${self.PHOTO_POST_URL}${Controller.ID}=${postId}`;
+        const resp = await fetch(url, {method: self._DELETE});
+        if (resp.status!==self.OK) {
+            alert('Error');
+        }
+    }
+    static async like(id) {
+        const url = `${this._PHOTO_POST_LIKE_URL}${id}`;
+        const resp = await fetch(url, {method: PostTools.POST});
+        if (resp.status !== this.OK) {
+            alert('Error');
+        }
+    }
+    static async add(formData) {
+        const url = PostTools.PHOTO_POST_URL;
+        const resp = await fetch(url, {method: PostTools.POST, body: formData});
+        if (resp.status !== PostTools.OK) {
+            return PostTools.onError(resp);
+        }
+    }
+    static async edit(formData) {
+        const url = PostTools.PHOTO_POST_URL;
+        const resp = await fetch(url, {method: PostTools.PUT, body: formData});
+        if (resp.status !== PostTools.OK) {
+            return PostTools.onError(resp);
+        }
+    }
+    static async downloadImage(photoLink) {
+        let url = '/photo-post?';
+        url=`${url}${PostTools.LINK}=${photoLink}`;
+        const resp = await fetch(url, {method: PostTools._GET});
+        if (resp.status !== PostTools.OK) {
+            return PostTools.onError(resp);
+        }
+        return resp;
+    }
+    /* static _MIN_DESCRIPTION_LENGTH = 10;
     static _MAX_DESCRIPTION_LENGTH = 200;
     static _MAX_TAG_LENGTH = 20;
     static _filterHelper = {
@@ -18,17 +104,17 @@ class PostList {
         },
         hashTags: function(collection, tagsArray) {
             return collection.filter((item) =>
-                PostList._isContainTag(item.hashTags, tagsArray));
+                PostTools._isContainTag(item.hashTags, tagsArray));
         },
     };
     static _validateHelper = {
         description: function(decription) {
             decription = decription.replace(/\r?\n/g, '').trim();
-            return decription.length >= PostList._MIN_DESCRIPTION_LENGTH &&
-                decription.length <= PostList._MAX_DESCRIPTION_LENGTH;
+            return decription.length >= PostTools._MIN_DESCRIPTION_LENGTH &&
+                decription.length <= PostTools._MAX_DESCRIPTION_LENGTH;
         },
         hashTags: function(tags) {
-            return tags.every(PostList._isGreatTag);
+            return tags.every(PostTools._isGreatTag);
         },
         photoLink: function(link) {
             return link.length > 0;
@@ -41,16 +127,16 @@ class PostList {
     clear() {
         this._posts = [];
     }
-    getPage(skip = 0, get = 10, filterConfig = {}) {
+    getPosts(skip = 0, get = 10, filterConfig = {}) {
         const self = this;
         let filteredPosts = self._posts.slice();
         Object.keys(filterConfig).forEach(function(field) {
-            if (PostList._filterHelper[field]) {
-                filteredPosts = PostList._filterHelper[field](filteredPosts,
+            if (PostTools._filterHelper[field]) {
+                filteredPosts = PostTools._filterHelper[field](filteredPosts,
                     filterConfig[field]);
             }
         });
-        return filteredPosts.sort(PostList._sortDownByDate).slice(skip, skip + get);
+        return filteredPosts.sort(PostTools._sortDownByDate).slice(skip, skip + get);
     }
     edit(id, post) {
         if (post) {
@@ -70,29 +156,29 @@ class PostList {
                         break;
                     }
                     case 'hashTags': {
-                        objectToEdit[item] = PostList._toLowerCase(post[item]);
+                        objectToEdit[item] = PostTools._toLowerCase(post[item]);
                     }
                 }
             });
-            if (PostList._validate(objectToEdit, true)) {
+            if (PostTools._validate(objectToEdit, true)) {
                 const index = this._posts.indexOf(tmp);
                 this._posts.splice(index, 1, objectToEdit);
-                PostList.save(objectToEdit, {edit: true});
+                PostTools.save(objectToEdit, {edit: true});
                 return true;
             }
         }
         return false;
     }
     add(post, username) {
-        if (PostList._validate(post)) {
+        if (PostTools._validate(post)) {
             post.creationDate = new Date();
             post.id = Math.floor(post.creationDate.valueOf() *
                 Math.random()).toString();
             post.author = username;
             post.likes = [];
-            post.hashTags = PostList._toLowerCase(post.hashTags);
+            post.hashTags = PostTools._toLowerCase(post.hashTags);
             this._posts.push(post);
-            PostList.save(post, {add: true});
+            PostTools.save(post, {add: true});
             return true;
         }
         return false;
@@ -101,7 +187,7 @@ class PostList {
         const tmp = this.get(id);
         if (tmp) {
             this._posts.splice(this._posts.indexOf(tmp), 1);
-            PostList.save(tmp, {del: true});
+            PostTools.save(tmp, {del: true});
             return true;
         }
         return false;
@@ -122,19 +208,6 @@ class PostList {
         }
         return posts;
     }
-    like(id, user) {
-        const tmp = this.get(id);
-        const index = tmp.likes.indexOf(user);
-        if (index === -1) {
-            tmp.likes.push(user);
-            PostList.save(tmp, {edit: true});
-            return true;
-        } else {
-            tmp.likes.splice(index, 1);
-            PostList.save(tmp, {edit: true});
-            return false;
-        }
-    }
     getPostListLength() {
         return this._posts.length;
     }
@@ -145,9 +218,6 @@ class PostList {
         Object.keys(localStorage).forEach((id) => {
             this._posts.push(this._fixPostDate(JSON.parse(localStorage.getItem(id))));
         });
-    }
-    static strToDate(str) {
-        return new Date(str);
     }
     static save(post, params) {
         if (params.add) {
@@ -168,13 +238,13 @@ class PostList {
                 'hashTags',
                 'photoLink',
             ];
-            if (!(PostList._isContainFields(Object.keys(photoPost),
+            if (!(PostTools._isContainFields(Object.keys(photoPost),
                 requiredFields))) {
                 return false;
             }
         }
-        return Object.keys(PostList._validateHelper).every((field) =>
-            PostList._validateHelper[field](photoPost[field]));
+        return Object.keys(PostTools._validateHelper).every((field) =>
+            PostTools._validateHelper[field](photoPost[field]));
     }
     static _isContainFields(where, what) {
         return what.every(function(element) {
@@ -182,10 +252,10 @@ class PostList {
         });
     }
     static _isGreatTag(tag) {
-        return tag.trim().length <= PostList._MAX_TAG_LENGTH && tag.trim().length > 0;
+        return tag.trim().length <= PostTools._MAX_TAG_LENGTH && tag.trim().length > 0;
     }
     static _isContainTag(where, what) {
-        const tags = what.filter((item) => PostList._isContainPart(where, item));
+        const tags = what.filter((item) => PostTools._isContainPart(where, item));
         return tags.length > 0 && where.length > 0;
     }
     static _isContainPart(where, tag) {
@@ -199,7 +269,7 @@ class PostList {
         return arr.length ? arr.toString().toLowerCase().split(',') : [];
     }
     _fixPostDate(post) {
-        post.creationDate = PostList.strToDate(post.creationDate);
+        post.creationDate = PostTools.strToDate(post.creationDate);
         return post;
-    }
+    }*/
 }
