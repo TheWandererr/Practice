@@ -2,6 +2,7 @@ package com.bsu.practice.app.servlets;
 
 import com.bsu.practice.app.collection.PhotoPost;
 import com.bsu.practice.app.collection.PostList;
+import com.bsu.practice.app.session.SessionController;
 import com.bsu.practice.app.user.User;
 import com.google.gson.Gson;
 import org.apache.commons.fileupload.FileItem;
@@ -15,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.annotation.MultipartConfig;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -23,13 +26,17 @@ public class PhotoPostServlet extends HttpServlet {
 
     private PostList postsCollection;
     private User user;
-    private final int INCORRECT_REQUEST = -1;
-    private final int SINGLE_PART_REQUEST = 0;
-    private final int ADD_REQUEST = 1;
-    private final int EDIT_REQUEST = 2;
-    private final int LIKE_REQUEST = 3;
-    private final int MAX_SIZE = 1024 * 1024 * 10;
+    public static final int SINGLE_PART_REQUEST = 0;
+    private static final int MAX_SIZE = 1024 * 1024 * 10;
+    private static final int MAX_BUFFER = 1024 * 5;
+    private static final String ID = "id";
+    private static final String PHOTO_LINK = "photoLink";
+    private static final String DESCRIPTION = "description";
+    private static final String TAGS = "hashTags";
+    private static final Gson gson = new Gson();
     private Map<String, String> rawPost;
+    private int status;
+
 
     @Override
     public void init() throws ServletException {
@@ -40,141 +47,97 @@ public class PhotoPostServlet extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
-        PhotoPost target = postsCollection.get(req.getParameter("id"));
-        if (!user.hasWritePermission(target)) {
-            resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            return;
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        rawPost.clear();
+        status = processForm(req);
+        if (status == HttpServletResponse.SC_OK) {
+            String id = rawPost.get(ID);
+            if (SessionController.isOperationAllowed(postsCollection.get(id), user, resp)) {
+                if (!postsCollection.edit(id, rawPost)) {
+                    SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
+                } else {
+                    PhotoPost reqPost = postsCollection.get(id);
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                    resp.getOutputStream().print(gson.toJson(reqPost));
+                }
+            }
+        } else {
+            SessionController.sendLastErrorMess(resp, status);
         }
-        postsCollection.remove(target);
-        resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        PhotoPost target = postsCollection.get(req.getParameter(ID));
+        if (SessionController.isOperationAllowed(target, user, resp)) {
+            postsCollection.remove(target);
+            resp.setStatus(HttpServletResponse.SC_OK);
+            SessionController.sendSuccessMess(resp);
+        } else {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        }
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String photoLink = req.getParameter("photoLink");
+        String photoLink = req.getParameter(PHOTO_LINK);
         if (photoLink != null) {
-            String path = getServletContext().getRealPath("/WEB-INF/uploads/");
-            resp.setContentType("image/jpeg");
-            try (FileInputStream fin = new FileInputStream(path + photoLink);
-                 BufferedInputStream bin = new BufferedInputStream(fin);
-                 BufferedOutputStream bout = new BufferedOutputStream(resp.getOutputStream())) {
-                int ch;
-                final int NOT_READABLE = -1;
-                while ((ch = bin.read()) != NOT_READABLE) {
-                    bout.write(ch);
-                }
-            } catch (Exception e) {
-                resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
-                return;
-            }
-        }
-        PhotoPost reqPost = postsCollection.get(req.getParameter("id"));
-        if (!user.hasWritePermission(reqPost)) {
-            resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            sendExistingFile(resp, photoLink);
             return;
         }
-        Gson gson = new Gson();
-        String answer = gson.toJson(reqPost);
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.getOutputStream().println(answer);
+        PhotoPost target = postsCollection.get(req.getParameter(ID));
+        if (SessionController.hasWritePermission(user) && target!= null) {
+            String answer = gson.toJson(target);
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getOutputStream().println(answer);
+        } else {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        if (!SessionController.hasWritePermission(user)) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         rawPost.clear();
-        int status = processForm(req, resp);
-        int reqType = getReqType(resp);
-        PhotoPost reqPost = new PhotoPost();
-        String id = rawPost.get("id");
-        switch (reqType) {
-            case INCORRECT_REQUEST: {
+        status = processForm(req);
+        if (status == HttpServletResponse.SC_OK) {
+            PhotoPost reqPost;
+            reqPost = new PhotoPost(
+                    user.getUsername(),
+                    rawPost.get(DESCRIPTION),
+                    rawPost.get(PHOTO_LINK),
+                    PhotoPost.fixTags(rawPost.get(TAGS)));
+            if (!postsCollection.add(reqPost)) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
-            case LIKE_REQUEST: {
-                if (status == SINGLE_PART_REQUEST) {
-                    if (user.hasWritePermission() && postsCollection.like(id, user.getUsername())) {
-                        resp.setStatus(HttpServletResponse.SC_OK);
-                    } else {
-                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    }
-                    return;
-                }
-            }
-            case ADD_REQUEST: {
-                if (status == HttpServletResponse.SC_OK && user.hasWritePermission()) {
-                    reqPost = new PhotoPost(
-                            user.getUsername(),
-                            rawPost.get("description"),
-                            rawPost.get("photoLink"),
-                            PhotoPost.fixTags(rawPost.get("hashTags")));
-                    if (!postsCollection.add(reqPost)) {
-                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return;
-                    }
-                }
-                break;
-            }
-            case EDIT_REQUEST: {
-                if (status == HttpServletResponse.SC_OK && user.hasWritePermission()) {
-                    if (!postsCollection.edit(id, rawPost)) {
-                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return;
-                    } else {
-                        reqPost = postsCollection.get(id);
-                    }
-                }
-                break;
-            }
+            resp.setStatus(HttpServletResponse.SC_OK);
+            String answer = gson.toJson(reqPost);
+            resp.getOutputStream().println(answer);
+        } else {
+            SessionController.sendLastErrorMess(resp, status);
         }
-        resp.setStatus(HttpServletResponse.SC_OK);
-        Gson gson = new Gson();
-        String answer = gson.toJson(reqPost);
-        resp.getOutputStream().println(answer);
     }
 
     @Override
     public void destroy() {
         super.destroy();
     }
-
-    private int getReqType(HttpServletResponse resp) {
-        String id = rawPost.get("id");
-        if (rawPost.get("like") != null) {
-            if (id != null) {
-                return LIKE_REQUEST;
-            } else {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return INCORRECT_REQUEST;
-            }
-        }
-        if (id == null) {
-            return ADD_REQUEST;
-        }
-        PhotoPost post = postsCollection.get(id);
-        if (post == null || !post.getAuthor().equals(user.getUsername())) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return INCORRECT_REQUEST;
-        }
-        return EDIT_REQUEST;
+    //Не работает с PUT
+    private static boolean isMultipart(HttpServletRequest req) {
+        return ServletFileUpload.isMultipartContent(req);
     }
 
-    private static boolean isMultipart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
-        if (!isMultipart) {
-            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            return false;
-        }
-        return true;
-    }
-
-    private int processForm(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!PhotoPostServlet.isMultipart(req, resp)) {
+    private int processForm(HttpServletRequest req) {
+        /*
+        if (!PhotoPostServlet.isMultipart(req)) {
             return SINGLE_PART_REQUEST;
-        }
+        }*/
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        //factory.setSizeThreshold(1024 * 1024);
-        File tempDir = new File("/WEB-INF/uploads/");//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
+        File tempDir = new File("/WEB-INF/");//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
         factory.setRepository(tempDir);
         ServletFileUpload upload = new ServletFileUpload(factory);
         upload.setSizeMax(MAX_SIZE);
@@ -188,8 +151,7 @@ public class PhotoPostServlet extends HttpServlet {
                 }
             }
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return INCORRECT_REQUEST;
+            return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         }
         return HttpServletResponse.SC_OK;
     }
@@ -199,19 +161,45 @@ public class PhotoPostServlet extends HttpServlet {
         rawPost.put(name, item.getString());
     }
 
-    //Уникальный filename содержится в поле поста photoLink
     private void processUploadedFile(FileItem item) throws Exception {
         Random random = new Random();
         File uploadFile;
         int rand;
         do {
             rand = random.nextInt();
-            String path = getServletContext().getRealPath("/WEB-INF/uploads/" + rand);
+            String path = getServletContext().getRealPath("/WEB-INF/" + rand);
             uploadFile = new File(path);
         } while (uploadFile.exists());
-        rawPost.put("photoLink", String.valueOf(rand));
+        rawPost.put(PHOTO_LINK, String.valueOf(rand));
         if (uploadFile.createNewFile()) {
             item.write(uploadFile);
         }
+    }
+
+    private void sendExistingFile(HttpServletResponse resp, String photoLink) throws IOException {
+        try{
+            String path = getServletContext().getRealPath("/WEB-INF/");
+            resp.setContentType("image/jpeg");
+            InputStream is = Files.newInputStream(Paths.get(path+photoLink));
+            byte[] buffer = new byte[MAX_BUFFER];
+            int read;
+            while((read = is.read(buffer)) > 0) {
+                resp.getOutputStream().write(buffer,0,read);
+            }
+        }
+        catch (Exception e) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+        /*try (FileInputStream fin = new FileInputStream(path + photoLink);
+             BufferedInputStream bin = new BufferedInputStream(fin);
+             BufferedOutputStream bout = new BufferedOutputStream(resp.getOutputStream())) {
+            int ch;
+            final int NOT_READABLE = -1;
+            while ((ch = bin.read()) != NOT_READABLE) {
+                bout.write(ch);
+            }
+        } catch (Exception e) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }*/
     }
 }

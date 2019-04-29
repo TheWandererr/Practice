@@ -39,7 +39,7 @@
     <div class="container">
         <aside class="sidebar">
             <div class="dark">
-                <form class="filter" method="post">
+                <form class="filter" method="get">
                     <div>
                         <label>AUTHOR'S NAME</label><br>
                         <input type="text" placeholder="Name..." name="author">
@@ -67,12 +67,12 @@
         <aside class="log-form">
             <div class="light">
                 <div class="log">
-                    <form class="form-inner" method="post">
+                    <form class="form-inner" method="post" name="logForm">
                         <h3>Authorization</h3>
                         <label for="user">Username<span class="red-star">*</span></label>
-                        <input type="text" id="user" maxlength="30" autocomplete="off">
+                        <input type="text" id="user" maxlength="30" autocomplete="off" name="authUser">
                         <label for="password">Password<span class="red-star">*</span></label>
-                        <input id="password" type="password" maxlength="30">
+                        <input id="password" type="password" maxlength="30" name="authPass">
                         <p class="error-auth">*Required fields</p>
                         <button class="enter-button" type="submit">
                             <span>Login</span>
@@ -83,23 +83,23 @@
         </aside>
         <aside class="hidden-add">
             <div class="add-form-bg">
-                <form method="post" class="add-change-form" enctype="multipart/form-data">
+                <form method="post" class="add-change-form" name="addChangeForm">
                     <h3 class="post-author">Author: </h3>
                     <h3 class="post-date">Date: </h3>
                     <div id="input-area">
                         <div class="fields">
                             <div id="drop-area">
                                 <div id="gallery"></div>
-                                <p>Upload file or drop image here</p>
-                                <input type="file" id="fileElem" multiple accept="image/*" onchange="PageController.previewFile(this.files[0])">
+                                <p>Upload file or drop image here*</p>
+                                <input type="file" id="fileElem" name="photoLink" multiple accept="image/*" required onchange="Controller.previewFile(this.files[0])">
                                 <label class="choose-button" for="fileElem">Select file</label>
                             </div>
                             <div class="required">
                                 <p class="error-auth">*Required fields</p>
                             </div>
                             <textarea minlength="10" maxlength="200" autocomplete="off" id="post-description"
-                                      placeholder="Description...*" required></textarea>
-                            <textarea autocomplete="off" id="post-tags" placeholder="Tags..."></textarea>
+                                      placeholder="Description...*" required name="description"></textarea>
+                            <textarea autocomplete="off" id="post-tags" placeholder="Tags..." name="hashTags"></textarea>
                         </div>
                         <div class="submit-post">
                             <button type="submit" class="add-submit-btn">SUBMIT</button>
@@ -117,7 +117,7 @@
 </footer>
 </body>
 <script src="resources/js/PageController.js"></script>
-<script src="resources/js/PostList.js"></script>
-<script src="resources/js/View.js"></script>
-<script src="resources/js/GlobalFunctions.js"></script>
+<script src="resources/js/PostTools.js"></script>
+<script src="resources/js/Display.js"></script>
+<script src="resources/js/Global.js"></script>
 </html>

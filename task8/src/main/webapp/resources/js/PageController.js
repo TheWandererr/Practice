@@ -1,4 +1,5 @@
-class PageController {
+class Controller {
+    static ID = 'id';
     static _TAPE_CLASS = 'main-col';
     static _FILTER_CLASS = 'filter';
     static _FILTER_DATE_INPUT_CLASS = 'filter-date-input';
@@ -9,6 +10,9 @@ class PageController {
     static _MAIN_TAPE_CLASS = 'main-col';
     static _LOGIN_FORM_ELEMENT_CLASS = 'log-form';
     static _FORM_AUTH_CLASS = 'form-inner';
+    static _FORM_AUTH_NAME = 'logForm';
+    static _FORM_AUTH_USERNAME = 'authUser';
+    static _FORM_AUTH_PASS = 'authPass';
     static _ERROR_PARAGRAPH_CLASS = 'error-auth';
     static _ADD_BUTTON_CLASS = 'add-button';
     static _ADD_SUBMIT_FORM_CLASS = 'add-change-form';
@@ -22,66 +26,42 @@ class PageController {
     static _DONE_TYPING_INTERVAL = 1300;
     constructor(user) {
         this._user = user;
-        PageController._createPostButtonsHandler();
-        PageController._createFilterHandle();
-        PageController._createLogOutHandler();
-        PageController._createLogInHandler();
-        PageController._createEnterEventHandler();
-        PageController._createBtnToTapeCLick();
-        PageController._createBtnAddClick();
-        PageController._createDragDropHandler();
-        PageController._createAddSubmitHandler();
+        Controller._createPostButtonsHandler();
+        Controller._createFilterHandle();
+        Controller._createLogOutHandler();
+        Controller._createLogInHandler();
+        Controller._createEnterEventHandler();
+        Controller._createBtnToTapeCLick();
+        Controller._createBtnAddClick();
+        Controller._createDragDropHandler();
+        Controller._createAddSubmitHandler();
     }
-    static uploadFile(file) {
-        const url = '/photo-post';
-        const xhr = new XMLHttpRequest();
-        const formData = new FormData();
-        xhr.open('POST', url, true);
-        xhr.addEventListener('readystatechange', function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                alert('Done');
-            } else if (xhr.readyState === 4 && xhr.status !== 200) {
-                alert('Error');
-            }
-        });
-        formData.append('file', file);
-        xhr.send(formData);
-    }
-    static previewFile(file) {
+    static previewFile(file, dropZone=document.getElementById(Display._IMAGE_ZONE_ID)) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        console.log(file);
         reader.onloadend = function() {
             const img = document.createElement('img');
             img.setAttribute('id', file.name);
             img.src = reader.result;
-            const dropZone = document.getElementById(View._IMAGE_ZONE_ID);
-            View.clearInnerHtml(dropZone);
+            Display.clearInnerHtml(dropZone);
             dropZone.appendChild(img);
         };
     }
-    static _createRawPost(fields) {
-        return {
-            photoLink: fields.curBg,
-            description: fields.curDescription.value,
-            hashTags: PageController._deleteRedundantFromTags(fields.curTags.value.trim()
-                .replace(/\s*[#+-,;. ]+\s*/g, '#')
-                .split('#')),
-        };
+    static _createRequestForm(fields) {
+        const formData = new FormData();
+        formData.append(PostTools.LINK, fields.namedItem(PostTools.LINK).files[0]);
+        formData.append(PostTools.DESCRIPTION, fields.namedItem(PostTools.DESCRIPTION).value);
+        formData.append(PostTools.TAGS, fields.namedItem(
+            PostTools.TAGS).value);
+        return formData;
     }
     static _createFilterConfig(formElements) {
         return {
-            author: formElements.namedItem(PageController._FILTER_AUTHOR_FIELD).value,
-            dateFrom: formElements.namedItem(PageController._FILTER_DATE_FROM_FIELD).value,
-            dateTo: formElements.namedItem(PageController._FILTER_DATE_TO_FIELD).value,
-            hashTags: formElements.namedItem(PageController._FILTER_HASHTAGS_FIELD).value.trim().split(/[.,;# ]/),
+            author: formElements.namedItem(Controller._FILTER_AUTHOR_FIELD).value,
+            dateFrom: formElements.namedItem(Controller._FILTER_DATE_FROM_FIELD).value,
+            dateTo: formElements.namedItem(Controller._FILTER_DATE_TO_FIELD).value,
+            hashTags: formElements.namedItem(Controller._FILTER_HASHTAGS_FIELD).value.trim().split(/[.,;# ]/),
         };
-    }
-    static _pushUserInfo(user) {
-        sessionStorage.setItem('username', user);
-    }
-    static _onAuthCheck(username, pass) {
-        return username.length > 0 && pass.length > 0;
     }
     static _clearInputValues(fragment) {
         Array.from(fragment.querySelectorAll('input')).forEach((item) => {
@@ -89,7 +69,7 @@ class PageController {
         });
     }
     static _fixFilterConfig(params) {
-        params.hashTags = PageController._deleteRedundantFromTags(params.hashTags);
+        params.hashTags = Controller._deleteRedundantFromTags(params.hashTags);
         const fixedFilter = {};
         Object.keys(params).filter((item) => params[item].toString().length).forEach((field) => {
             fixedFilter[field] = params[field];
@@ -106,56 +86,56 @@ class PageController {
         return res;
     }
     static _createAddSubmitHandler() {
-        const addSubmit = document.querySelector(`.${PageController._ADD_SUBMIT_FORM_CLASS}`);
-        addSubmit.addEventListener('submit', PageController._handleFormAdd);
+        const addSubmit = document.querySelector(`.${Controller._ADD_SUBMIT_FORM_CLASS}`);
+        addSubmit.addEventListener('submit', Controller._handleFormAdd);
     }
     static _createBtnToTapeCLick() {
-        const toTape = document.querySelector(`.${View._TO_POSTS_CLASS}`);
-        toTape.addEventListener('click', PageController._handleToTape);
+        const toTape = document.querySelector(`.${Display._TO_POSTS_CLASS}`);
+        toTape.addEventListener('click', Controller._handleToTape);
     }
     static _createPostButtonsHandler() {
-        const postList = document.querySelector(`.${PageController._TAPE_CLASS}`);
-        postList.addEventListener('click', PageController._handleBtnPostClick);
+        const postList = document.querySelector(`.${Controller._TAPE_CLASS}`);
+        postList.addEventListener('click', Controller._handleBtnPostClick);
     }
     static _createFilterHandle() {
-        const filter = document.querySelector(`.${PageController._FILTER_CLASS}`);
-        const filterDateInput = document.querySelector(`.${PageController._FILTER_DATE_INPUT_CLASS}`);
+        const filter = document.querySelector(`.${Controller._FILTER_CLASS}`);
+        const filterDateInput = document.querySelector(`.${Controller._FILTER_DATE_INPUT_CLASS}`);
         filter.addEventListener('keydown', function() {
-            clearTimeout(PageController._TYPING_TIMER);
+            clearTimeout(Controller._TYPING_TIMER);
         });
         filter.addEventListener('keyup', function() {
-            clearTimeout(PageController._TYPING_TIMER);
-            PageController._TYPING_TIMER = setTimeout(function() {
-                const params = PageController._createFilterConfig(filter.elements);
-                Global.filterPosts(PageController._fixFilterConfig(params));
-            }, PageController._DONE_TYPING_INTERVAL);
+            clearTimeout(Controller._TYPING_TIMER);
+            Controller._TYPING_TIMER = setTimeout(function() {
+                const params = Controller._createFilterConfig(filter.elements);
+                Global.filterPosts(Controller._fixFilterConfig(params));
+            }, Controller._DONE_TYPING_INTERVAL);
         });
-        filter.addEventListener('click', PageController._handleFilterClearOn);
+        filter.addEventListener('click', Controller._handleFilterClearOn);
         filterDateInput.addEventListener('change', function() {
-            const params = PageController._createFilterConfig(filter.elements);
+            const params = Controller._createFilterConfig(filter.elements);
             setTimeout(function() {
-                Global.filterPosts(PageController._fixFilterConfig(params));
-            }, PageController._DONE_TYPING_INTERVAL);
+                Global.filterPosts(Controller._fixFilterConfig(params));
+            }, Controller._DONE_TYPING_INTERVAL);
         });
     }
     static _createLogOutHandler() {
-        const logout = document.querySelector(`#${PageController._LOG_OUT_ID}`);
-        logout.addEventListener('click', PageController._handleOnClickLogout);
+        const logout = document.querySelector(`#${Controller._LOG_OUT_ID}`);
+        logout.addEventListener('click', Controller._handleOnClickLogout);
     }
     static _createLogInHandler() {
-        const login = document.querySelector(`#${PageController._LOG_IN_ID}`);
-        login.addEventListener('click', View.postsAuthSwap);
+        const login = document.querySelector(`#${Controller._LOG_IN_ID}`);
+        login.addEventListener('click', Display.postsAuthSwap);
     }
     static _createBtnAddClick() {
-        const addButton = document.querySelector(`.${PageController._ADD_BUTTON_CLASS}`);
-        addButton.addEventListener('click', View.postsAddFormSwap);
+        const addButton = document.querySelector(`.${Controller._ADD_BUTTON_CLASS}`);
+        addButton.addEventListener('click', Display.postsAddFormSwap);
     }
     static _createEnterEventHandler() {
-        const enter = document.querySelector(`.${PageController._FORM_AUTH_CLASS}`);
-        enter.addEventListener('submit', PageController._handleAuthorization);
+        const enter = document.querySelector(`.${Controller._FORM_AUTH_CLASS}`);
+        enter.addEventListener('submit', Controller._handleAuthorization);
     }
     static _createDragDropHandler() {
-        const dropArea = document.getElementById(PageController._DROP_ZONE_ID);
+        const dropArea = document.getElementById(Controller._DROP_ZONE_ID);
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
             dropArea.addEventListener(eventName, function(e) {
                 e.preventDefault();
@@ -175,44 +155,26 @@ class PageController {
         dropArea.addEventListener('drop', function(e) {
             const dt = e.dataTransfer;
             const file = dt.files[0];
-            //  PageController.uploadFile(file);
-            PageController.previewFile(file);
+            Controller.previewFile(file);
         });
-        /* const dropZone = document.getElementById(PageController._IMAGE_ZONE_ID);
-        const upload = function(file) {
-            const fileName = file.name;
-            View.changeDropZoneAppearance(dropZone, `images/${fileName}`);
-        };
-        dropZone.ondrop = function(e) {
-            e.preventDefault();
-            upload(e.dataTransfer.files[0]);
-        };
-        dropZone.ondragover = function() {
-            dropZone.className = PageController._DRAG_OVER_CLASS;
-            return false;
-        };
-        dropZone.ondragleave = function() {
-            dropZone.className = PageController._DROP_ZONE_CLASS;
-            return false;
-        };*/
-    }
+            }
     static _handleBtnPostClick(event) {
         if (event.target.tagName !== 'BUTTON') {
             return;
         }
-        if (event.target.className === View._LIKE_BUTTON_CLASS) {
+        if (event.target.className === Display._LIKE_BUTTON_CLASS) {
             Global.likePostById(event.target.parentElement.id);
         }
-        if (event.target.className === View._DELETE_BUTTON_CLASS) {
+        if (event.target.className === Display._DELETE_BUTTON_CLASS) {
             Global.removePhotoPost(event.target.parentElement.id);
         }
-        if (event.target.className === View._CHANGE_BUTTON_CLASS) {
-            View.postsAddFormSwap(event);
+        if (event.target.className === Display._CHANGE_BUTTON_CLASS) {
+            Display.postsAddFormSwap(event);
         }
-        if (event.target.className === View._LIKED_BUTTON_CLASS) {
+        if (event.target.className === Display._LIKED_BUTTON_CLASS) {
             Global.dislikePostById(event.target.parentElement.id);
         }
-        if (event.target.className === View._MORE_BUTTON_CLASS) {
+        if (event.target.className === Display._MORE_BUTTON_CLASS) {
             Global.showMore();
         }
     }
@@ -221,46 +183,60 @@ class PageController {
         if (event.target.tagName !== 'BUTTON') {
             return;
         }
-        if (event.target.className === PageController._CLEAR_BUTTON_CLASS) {
-            PageController._clearInputValues(event.currentTarget);
+        if (event.target.className === Controller._CLEAR_BUTTON_CLASS) {
+            Controller._clearInputValues(event.currentTarget);
         }
         Global.filterPosts();
     }
     static _handleOnClickLogout(event) {
-        sessionStorage.removeItem('username');
-        Global.logout();
-        if (!View.arePostsHidden()) {
-            View.postsAuthSwap(event, true);
-        } else {
-            View.addFormAuthSwap();
-        }
+        Global.logout(event).then(()=> {
+            if (!Display.arePostsHidden()) {
+                Display.postsAuthSwap(event, true);
+            } else {
+                Display.addFormAuthSwap();
+            }
+        });
     }
     static _handleAuthorization(event) {
         event.preventDefault();
-        const form = document.querySelector(`.${PageController._FORM_AUTH_CLASS}`);
-        const inputs = form.querySelectorAll('input');
-        const username = inputs[0].value;
-        const pass = inputs[1].value;
-        const error = form.querySelector(`.${PageController._ERROR_PARAGRAPH_CLASS}`);
-        if (PageController._onAuthCheck(username, pass)) {
-            PageController._clearInputValues(form);
-            error.innerText = '*Required fields';
-            View.postsAuthSwap(event, false);
-            PageController._pushUserInfo(username);
-            Global.login(username);
-        } else {
-            error.innerText = 'Check entered data and try again';
-        }
+        const form = document.forms[Controller._FORM_AUTH_NAME];
+        const inputs = form.elements;
+        const req = {};
+        req.username = inputs.namedItem(Controller._FORM_AUTH_USERNAME).value;
+        req.pass = inputs.namedItem(Controller._FORM_AUTH_PASS).value;
+        const data = JSON.stringify(req);
+        const error = form.querySelector(`.${Controller._ERROR_PARAGRAPH_CLASS}`);
+        Global.login(data)
+            .then((response) => {
+                if (response.status !== PostTools.OK) {
+                    error.innerText = 'Check entered data and try again';
+                    alert('Error');
+                } else {
+                    error.innerText = '*Required fields';
+                    Global.processUser(req);
+                    Controller._clearInputValues(form);
+                    Display.postsAuthSwap(event, false);
+                    Global.afterLog();
+                }
+            });
     }
     static _handleToTape(event) {
-        View.postsAuthSwap(event, false);
+        Display.postsAuthSwap(event, false);
     }
     static _handleFormAdd(event) {
         event.preventDefault();
-        const postId = document.querySelector(`.${PageController._FORM_FIELDS_CLASS}`)
-            .getAttribute('id');
-        const dropArea = document.getElementById(PageController._DROP_ZONE_ID);
-        const requiredMes = document.getElementsByClassName(PageController._ERROR_PARAGRAPH_CLASS)[1];
+        const postId = document.querySelector(`.${Controller._FORM_FIELDS_CLASS}`)
+            .getAttribute(Controller.ID);
+        const fields = document.forms.addChangeForm.elements;
+        const formData = Controller._createRequestForm(fields);
+        if (!postId) {
+            Global.addPhotoPost(formData, event);
+        } else {
+            formData.append(Controller.ID, postId);
+            Global.editPhotoPost(formData, event);
+        }
+        /* const dropArea = document.getElementById(Controller._DROP_ZONE_ID);
+        const requiredMes = document.getElementsByClassName(Controller._ERROR_PARAGRAPH_CLASS)[1];
         const img = dropArea.getElementsByTagName('img')[0];
         if (!img) {
             requiredMes.innerText = 'Check entered data and try again';
@@ -268,15 +244,15 @@ class PageController {
         }
         const fields = {
             curBg: img.getAttribute('id'),
-            curDescription: document.getElementById(View._POST_DESCRIPTION_ID),
-            curTags: document.getElementById(View._POST_TAGS_ID),
+            curDescription: document.getElementById(Display._POST_DESCRIPTION_ID),
+            curTags: document.getElementById(Display._POST_TAGS_ID),
         };
-        const post = PageController._createRawPost(fields);
+        const post = Controller._createRawPost(fields);
         const flag = postId ? Global.editPhotoPost(postId, post) : Global.addPhotoPost(post);
         requiredMes.innerText = flag ? '*Required fields' : 'Check entered data and try again';
         if (flag) {
-            View.postsAddFormSwap(event);
-            View.deleteContentFromAddForm();
-        }
+            Display.postsAddFormSwap(event);
+            Display.deleteContentFromAddForm();
+        }*/
     }
 }
