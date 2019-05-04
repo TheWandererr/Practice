@@ -34,27 +34,6 @@ class Display {
         this._totalNumber = total;
         this.getPage(initialPosts);
     }
-    showMore(postsToAdd) {
-        const self = this;
-        document.getElementsByClassName(Display._PHOTOS_CLASS)[0]
-            .appendChild(self._createPostsFragment(postsToAdd));
-        Display.appendImages(postsToAdd);
-        if (self._displayedNumber === self._totalNumber) {
-            Display._disableElementVisibility(document.getElementsByClassName(
-                Display._MORE_BUTTON_CLASS)[0]);
-        }
-    }
-    getPage(posts, add = false, del = false, totalNumber = this._totalNumber) {
-        const self = this;
-        if (posts) {
-            const docElement = document.getElementsByClassName(Display._PHOTOS_CLASS)[0];
-            Display.clearInnerHtml(docElement);
-            self._displayedNumber = 0;
-            docElement.appendChild(self._createPostsFragment(posts));
-            Display.appendImages(posts);
-        }
-        self._onGetPageChange(add, del, totalNumber);
-    }
     updatePostLikes(post, isLike = true) {
         const self = this;
         const requiredPost = document.getElementById(post.id);
@@ -68,18 +47,54 @@ class Display {
         this._user.name = user.name;
         this._user.unLog = user.unLog;
     }
-    static appendImages(posts) {
-        posts.forEach((post)=>{
-            const listItem = document.getElementById(post.id);
-            const img = listItem.getElementsByTagName('img')[0];
-                PostTools.downloadImage(post.photoLink).then((resp)=> {
-                    resp.blob()
-                        .then((blobResp) => {
-                            const src = Display._createImgSrc(blobResp);
-                            img.src = src;
-                        });
-                });
+    async showMore(postsToAdd) {
+        const self = this;
+        document.getElementsByClassName(Display._PHOTOS_CLASS)[0]
+            .appendChild(await self._createPostsFragment(postsToAdd));
+        if (self._displayedNumber === self._totalNumber) {
+            Display._disableElementVisibility(document.getElementsByClassName(
+                Display._MORE_BUTTON_CLASS)[0]);
+        }
+    }
+    async getPage(posts, add = false, del = false, totalNumber = this._totalNumber) {
+        const self = this;
+        if (posts) {
+            const docElement = document.getElementsByClassName(Display._PHOTOS_CLASS)[0];
+            Display.clearInnerHtml(docElement);
+            self._displayedNumber = 0;
+            docElement.appendChild(await self._createPostsFragment(posts));
+        }
+        self._onGetPageChange(add, del, totalNumber);
+    }
+    static previewFile(file, dropZone=document.getElementById(Display._IMAGE_ZONE_ID)) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function() {
+            const img = document.createElement('img');
+            img.setAttribute(Controller.ID, file.name);
+            img.src = reader.result;
+            Display.clearInnerHtml(dropZone);
+            dropZone.appendChild(img);
+        };
+    }
+    static formatDate(strDate) {
+        const date = new Date(strDate);
+        const year = date.getFullYear();
+        const values = [
+            (date.getMonth() + 1).toString(),
+            date.getDate().toString(),
+            date.getHours().toString(),
+            date.getMinutes().toString(),
+        ];
+        const fixedValues = [];
+        values.forEach(function(item) {
+            if (item.length < 2) {
+                fixedValues.push(`0${item}`);
+            } else {
+                fixedValues.push(item);
+            }
         });
+        return `${year}.${fixedValues[0]}.${fixedValues[1]} ${fixedValues[2]}:${fixedValues[3]}`;
     }
     static clearInnerText(htmlElement) {
         htmlElement.innerText = '';
@@ -115,6 +130,7 @@ class Display {
         }
     }
     static deleteContentFromAddForm() {
+        Display._deleteFile();
         Display._deleteImage();
         Display._deleteDescriptionContent();
         Display._deleteHashTagsContent();
@@ -135,6 +151,22 @@ class Display {
         Display._changeMainBackground(hidePosts);
         Display._updHeaderOnSwap(hidePosts);
     }
+    static async _loadContentToAddForm(post) {
+        Display._loadDescriptionContent(post.description);
+        Display._loadHashTagsContent(post.hashTags);
+        try {
+            const resp = await PostTools.downloadImage(post.photoLink);
+            const blobResp = await resp.blob();
+            const where = document.getElementById(Display._IMAGE_ZONE_ID);
+            const img = document.createElement('img');
+            img.src = Controller._createImgSrc(blobResp);
+            where.appendChild(img);
+            Display._loadDescriptionContent(post.description);
+            Display._loadHashTagsContent(post.hashTags);
+        } catch (e) {
+            console.log(e.message);
+        }
+    }
     static _loadHashTagsContent(what) {
         const where = document.getElementById(Display._POST_TAGS_ID);
         where.value = Display._fixHashTags(what);
@@ -143,37 +175,32 @@ class Display {
         const where = document.getElementById(Display._POST_DESCRIPTION_ID);
         where.value = what;
     }
+    static _deleteRedundantFromTags(tags) {
+        const res = [];
+        tags.forEach(function(tag) {
+            if (tag) {
+                res.push(tag);
+            }
+        });
+        return res;
+    }
+    static _deleteInputValues(fragment) {
+        Array.from(fragment.querySelectorAll('input')).forEach((item) => {
+            item.value = '';
+        });
+    }
     static _deletePostIdFromAdd() {
         const postId = document.querySelector(`.${Controller._FORM_FIELDS_CLASS}`);
         if (postId) {
-            postId.removeAttribute('id');
+            postId.removeAttribute(Controller.ID);
         }
-    }
-    static _createImgSrc(blobResp) {
-        const urlCreator = window.URL || window.webkitURL;
-        return urlCreator.createObjectURL(blobResp);
-    }
-    static _loadContentToAddForm(post) {
-        Display._loadDescriptionContent(post.description);
-        Display._loadHashTagsContent(post.hashTags);
-        /* PostTools.downloadImage(post.photoLink)
-            .then((resp)=> {
-                resp.blob().then((blobResp) => {
-                    const where = document.getElementById(Display._IMAGE_ZONE_ID);
-                    const img = document.createElement('img');
-                    img.src = Display._createImgSrc(blobResp);
-                    where.appendChild(img);
-                    Display._loadDescriptionContent(post.description);
-                    Display._loadHashTagsContent(post.hashTags);
-                });
-            })
-            .catch((answer) => {
-                alert(answer);
-            });*/
     }
     static _deleteHashTagsContent() {
         const where = document.getElementById(Display._POST_TAGS_ID);
         where.value = '';
+    }
+    static _deleteFile() {
+        Controller._FILE = null;
     }
     static _deleteImage() {
         const dropArea = document.getElementById(Display._IMAGE_ZONE_ID);
@@ -185,41 +212,21 @@ class Display {
         const where = document.getElementById(Display._POST_DESCRIPTION_ID);
         where.value = '';
     }
-    static _formatDate(strDate) {
-        const date = new Date(strDate);
-        const year = date.getFullYear();
-        const values = [
-            (date.getMonth() + 1).toString(),
-            date.getDate().toString(),
-            date.getHours().toString(),
-            date.getMinutes().toString(),
-        ];
-        const fixedValues = [];
-        values.forEach(function(item) {
-            if (item.length < 2) {
-                fixedValues.push(`0${item}`);
-            } else {
-                fixedValues.push(item);
-            }
-        });
-        return `${year}.${fixedValues[0]}.${fixedValues[1]} ${fixedValues[2]}:${fixedValues[3]}`;
-    }
-    static _changeAddFormContent(event, hide) {
+    static async _changeAddFormContent(event, hide) {
         if (hide) {
             const authorArea = document.getElementsByClassName(Display._POST_AUTHOR_CLASS)[0];
             authorArea.innerHTML = document.getElementById(Display._USERNAME_ID).textContent;
             const dateArea = document.getElementsByClassName(Display._POST_DATE_CLASS)[0];
-            const id = event.target.parentElement.getAttribute('id');
+            const id = event.target.parentElement.getAttribute(Controller.ID);
             if (id) {
-                PostTools.getPost(id).then((post)=>{
-                    dateArea.innerHTML = Display._formatDate(post.createdAt);
-                    if (event.target.className !== Display._ADD_BUTTON_CLASS) {
-                        Display._loadContentToAddForm(post);
-                        Display._changeAddFormId(post.id);
-                    }
-                });
+                const post = await PostTools.getPost(id);
+                dateArea.innerHTML = Display.formatDate(post.createdAt);
+                if (event.target.className !== Display._ADD_BUTTON_CLASS) {
+                    Display._loadContentToAddForm(post);
+                    Display._changeAddFormId(post.id);
+                }
             } else {
-                dateArea.innerHTML = Display._formatDate(new Date().toString());
+                dateArea.innerHTML = Display.formatDate(new Date().toString());
             }
         } else {
             Display.deleteContentFromAddForm();
@@ -267,7 +274,7 @@ class Display {
     static _changeAddFormId(id) {
         const form = document
             .querySelector(`.${Display._ADD_CHANGE_FIELDS}`);
-        form.setAttribute('id', id);
+        form.setAttribute(Controller.ID, id);
     }
     static _changeAddFormDisplay(hiddenPosts) {
         const form = document
@@ -320,6 +327,31 @@ class Display {
         });
         return out.toString().replace(/,/g, '');
     }
+    async _createPostElement(post) {
+        const resp = await PostTools.downloadImage(post.photoLink);
+        const blobResp = await resp.blob();
+        const src = Controller._createImgSrc(blobResp);
+        return `<h3>${post.author}</h3>
+                <h3 class="date">${Display.formatDate(post.createdAt)}</h3>
+                <div class="image"><img src=${src} alt="/"></div>
+                ${this._createChangeButton(post)}                  
+                ${this._createDeleteButton(post)}
+                ${this._createLikeButton(post)}
+                <a class="count-like">${post.likes.length} likes</a>
+                <p>${post.description}<br>${Display._fixHashTags(post.hashTags)}</p>`;
+    }
+    async _createPostsFragment(posts) {
+        const self = this;
+        const fragment = document.createDocumentFragment();
+        for (const post of posts) {
+            const postEl = document.createElement('li');
+            postEl.setAttribute(Controller.ID, post.id);
+            postEl.innerHTML = await self._createPostElement(post);
+            fragment.appendChild(postEl);
+            self._displayedNumber += 1;
+        }
+        return fragment;
+    }
     _createLikeButton(post) {
         return `<button class="${!this._user.unLog ? post.likes.includes(this._user.name) ?
             Display._LIKED_BUTTON_CLASS : Display._LIKE_BUTTON_CLASS : Display._HIDDEN_ELEMENT_CLASS}"
@@ -332,30 +364,6 @@ class Display {
     _createChangeButton(post) {
         return `<button class="${post.author === this._user.name ? Display._CHANGE_BUTTON_CLASS : Display._HIDDEN_ELEMENT_CLASS}"
                      type="submit">Change</button>`;
-    }
-    _createPostElement(post) {
-            return `
-                    <h3>${post.author}</h3>
-                    <h3 class="date">${Display._formatDate(post.createdAt)}</h3>
-                    <div class="image"><img src="" alt="/"></div>
-                    ${this._createChangeButton(post)}                  
-                    ${this._createDeleteButton(post)}
-                    ${this._createLikeButton(post)}
-                    <a class="count-like">${post.likes.length} likes</a>
-                    <p>${post.description}<br>${Display._fixHashTags(post.hashTags)}</p>
-                `;
-    }
-    _createPostsFragment(posts) {
-        const self = this;
-        const fragment = document.createDocumentFragment();
-        posts.forEach(function(post) {
-            const postEl = document.createElement('li');
-            postEl.setAttribute('id', post.id);
-            postEl.innerHTML = self._createPostElement(post);
-            fragment.appendChild(postEl);
-            self._displayedNumber += 1;
-        });
-        return fragment;
     }
     _onLoginUpdate() {
         Display._updHeaderOnLog(this._user);

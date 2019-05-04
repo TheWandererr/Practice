@@ -91,7 +91,7 @@
                             <div id="drop-area">
                                 <div id="gallery"></div>
                                 <p>Upload file or drop image here*</p>
-                                <input type="file" id="fileElem" name="photoLink" multiple accept="image/*" required onchange="Controller.previewFile(this.files[0])">
+                                <input type="file" id="fileElem" name="photoLink" multiple accept="image/*" onchange="Controller.processUploadedFile(this.files[0]);">
                                 <label class="choose-button" for="fileElem">Select file</label>
                             </div>
                             <div class="required">
@@ -116,8 +116,8 @@
     <p> | Copyright &copy; Make a moment, 2019</p>
 </footer>
 </body>
-<script src="resources/js/PageController.js"></script>
+<script src="resources/js/PageControl.js"></script>
 <script src="resources/js/PostTools.js"></script>
-<script src="resources/js/Display.js"></script>
+<script src="resources/js/PageDisplay.js"></script>
 <script src="resources/js/Global.js"></script>
 </html>

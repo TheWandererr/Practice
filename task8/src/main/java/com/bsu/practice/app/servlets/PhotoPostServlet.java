@@ -49,7 +49,7 @@ public class PhotoPostServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         rawPost.clear();
-        status = processForm(req);
+        status = processForm(req, resp);
         if (status == HttpServletResponse.SC_OK) {
             String id = rawPost.get(ID);
             if (SessionController.isOperationAllowed(postsCollection.get(id), user, resp)) {
@@ -102,7 +102,7 @@ public class PhotoPostServlet extends HttpServlet {
             return;
         }
         rawPost.clear();
-        status = processForm(req);
+        status = processForm(req, resp);
         if (status == HttpServletResponse.SC_OK) {
             PhotoPost reqPost;
             reqPost = new PhotoPost(
@@ -131,21 +131,14 @@ public class PhotoPostServlet extends HttpServlet {
         return ServletFileUpload.isMultipartContent(req);
     }
 
-    private int processForm(HttpServletRequest req) {
-        /*
-        if (!PhotoPostServlet.isMultipart(req)) {
-            return SINGLE_PART_REQUEST;
-        }*/
-        DiskFileItemFactory factory = new DiskFileItemFactory();
-        File tempDir = new File("/WEB-INF/");//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
-        factory.setRepository(tempDir);
-        ServletFileUpload upload = new ServletFileUpload(factory);
+    private int processForm(HttpServletRequest req, HttpServletResponse resp) {
+        ServletFileUpload upload = new ServletFileUpload(createRepository());
         upload.setSizeMax(MAX_SIZE);
         try {
             List<FileItem> items = upload.parseRequest(req);
             for (FileItem item : items) {
                 if (item.isFormField()) {
-                    processFormField(item);
+                    processFormField(item, req, resp);
                 } else {
                     processUploadedFile(item);
                 }
@@ -153,11 +146,29 @@ public class PhotoPostServlet extends HttpServlet {
         } catch (Exception e) {
             return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         }
-        return HttpServletResponse.SC_OK;
+        return resp.getStatus();
     }
 
-    private void processFormField(FileItem item) {
+    private DiskFileItemFactory createRepository() {
+        String fullPath = getServletContext().getRealPath("/WEB-INF/temp");
+        DiskFileItemFactory factory = new DiskFileItemFactory();
+        File tempDir = new File(fullPath);//(File)getServletContext().getAttribute("javax.servlet.context.tempdir");
+        if (!tempDir.exists()) {
+            tempDir.mkdir();
+        }
+        factory.setRepository(tempDir);
+        return factory;
+    }
+
+    private void processFormField(FileItem item, HttpServletRequest req, HttpServletResponse resp) {
         String name = item.getFieldName();
+        if (req.getMethod().equals("PUT") && name.equals(PHOTO_LINK)) {
+            return;
+        }
+        if (req.getMethod().equals("POST") && name.equals(PHOTO_LINK)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
         rawPost.put(name, item.getString());
     }
 
@@ -167,7 +178,7 @@ public class PhotoPostServlet extends HttpServlet {
         int rand;
         do {
             rand = random.nextInt();
-            String path = getServletContext().getRealPath("/WEB-INF/" + rand);
+            String path = getServletContext().getRealPath("/resources/images/" + rand);
             uploadFile = new File(path);
         } while (uploadFile.exists());
         rawPost.put(PHOTO_LINK, String.valueOf(rand));
@@ -178,7 +189,7 @@ public class PhotoPostServlet extends HttpServlet {
 
     private void sendExistingFile(HttpServletResponse resp, String photoLink) throws IOException {
         try{
-            String path = getServletContext().getRealPath("/WEB-INF/");
+            String path = getServletContext().getRealPath("/resources/images/");
             resp.setContentType("image/jpeg");
             InputStream is = Files.newInputStream(Paths.get(path+photoLink));
             byte[] buffer = new byte[MAX_BUFFER];

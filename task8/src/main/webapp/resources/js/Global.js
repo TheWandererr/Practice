@@ -1,17 +1,27 @@
 const Global = (function() {
+    // let ctrlDate = new Date().getMilliseconds();
+    // setFixDate();
+    let filterConf = {};
+    let display = {};
+    let skip = 0;
     const name = getName();
     const unLog = getUnLog();
     const user = createUser();
     const get = 10;
     const postTools = new PostTools();
     const pageController = new Controller(user);
-    let filterConf = {};
-    let display = {};
-    let skip = 0;
     const posts = PostTools.getPosts(skip, Number.MAX_SAFE_INTEGER, filterConf).then((answer) => {
         display = new Display(user, answer.slice(skip, skip + get), answer.length);
         return answer;
     });
+    /* function setFixDate() {
+        const fetched = sessionStorage.getItem('sDate');
+        if (fetched) {
+            ctrlDate = Number.parseInt(fetched);
+        } else {
+            sessionStorage.setItem('sDate', ctrlDate.toString());
+        }
+    }*/
     function isEmptyFilter(object) {
         return JSON.stringify(object) === '{}';
     }
@@ -43,156 +53,105 @@ const Global = (function() {
             }
             display.updateUserInfo(user);
         },
-        afterLog: function() {
-            PostTools.getPosts(skip, get).then((respone) => {
-                display.getPage(respone);
-            });
+        afterLog: async function() {
+            try {
+                const resp = await PostTools.getPosts(skip, get);
+                display.getPage(resp);
+            } catch (e) {
+                console.log(e.message);
+            }
         },
         login: async function(inUser) {
-         return await fetch('/login', {method: 'post', body: inUser});
+            const resp = await fetch('/login', {method: 'post', body: inUser});
+            if (resp.status !== PostTools.OK) {
+                return PostTools.onError(resp);
+            }
         },
         logout: async function() {
-            const resp = await fetch('/logout', {method: 'post'});
-            if (resp.status !== PostTools.OK) {
-                    alert('Error');
-            } else {
+            try {
+                await fetch('/logout', {method: 'post'});
                 Global.processUser();
                 display.getPage();
+            } catch (e) {
+                console.log(e.message);
             }
         },
-        filterPosts: function(filterConfig = {}) {
-            skip = 0;
-            if (!isEmptyFilter(filterConfig)) {
-                Object.keys(filterConfig).forEach((key) => filterConf[key] = filterConfig[key]);
-            } else {
-                filterConf = {};
+        filterPosts: async function(filterConfig = {}) {
+            try {
+                skip = 0;
+                if (!isEmptyFilter(filterConfig)) {
+                    Object.keys(filterConfig).forEach((key) => filterConf[key] = filterConfig[key]);
+                } else {
+                    filterConf = {};
+                }
+                const resp = await PostTools.getPosts(skip, Number.MAX_SAFE_INTEGER, filterConf);
+                display.getPage(resp.slice(skip, skip + get), false, false, resp.length);
+            } catch (e) {
+                console.log(JSON.stringify(e));
             }
-            PostTools.getPosts(skip, Number.MAX_SAFE_INTEGER, filterConf).then((response) => {
-                display.getPage(response.slice(skip, skip + get), false, false, response.length);
-            });
         },
-        removePhotoPost: function(id) {
-            skip = 0;
-            PostTools.delete(id).then(() => {
-                PostTools.getPosts(skip, get, filterConf).then((response)=> {
-                    display.getPage(response, false, true);
-                });
-            });
+        removePhotoPost: async function(id) {
+            try {
+                skip = 0;
+                await PostTools.delete(id);
+                const resp = await PostTools.getPosts(skip, get, filterConf);
+                display.getPage(resp, false, true);
+            } catch (e) {
+                console.log(e.message);
+            }
         },
-        likePostById: function(id) {
-            PostTools.like(id).then(() => {
-                PostTools.getPost(id).then((resp) => {
-                    display.updatePostLikes(resp);
-                });
-            });
+        likePostById: async function(id) {
+            try {
+                await PostTools.like(id);
+                const resp = await PostTools.getPost(id);
+                display.updatePostLikes(resp);
+            } catch (e) {
+                console.log(e.message);
+            }
         },
-        dislikePostById: function(id) {
-            PostTools.like(id).then(() => {
-                PostTools.getPost(id).then((resp) => {
-                    display.updatePostLikes(resp, false);
-                });
-            });
+        dislikePostById: async function(id) {
+            try {
+                await PostTools.like(id);
+                const resp = await PostTools.getPost(id);
+                display.updatePostLikes(resp, false);
+            } catch (e) {
+                console.log(e.message);
+            }
         },
-        showMore: function() {
-            skip += 10;
-            PostTools.getPosts(skip, get, filterConf).then((resp)=>{
+        showMore: async function() {
+            try {
+                skip += 10;
+                const resp = await PostTools.getPosts(skip, get, filterConf);
                 display.showMore(resp);
-            });
+            } catch (e) {
+                console.log(e.message);
+            }
         },
         addPhotoPost: async function(formData, event) {
-            skip = 0;
-            PostTools.add(formData)
-                .then(()=> {
-                        PostTools.getPosts(skip, get).then((resp)=> {
-                        Display.postsAddFormSwap(event);
-                        Display.deleteContentFromAddForm();
-                        display.getPage(resp);
-                    });
-                })
-                .catch(()=> {
-                    alert('Error');
-                });
+            try {
+                skip = 0;
+                await PostTools.add(formData);
+                const resp = await PostTools.getPosts(skip, get);
+                Display.postsAddFormSwap(event);
+                Display.deleteContentFromAddForm();
+                display.getPage(resp);
+            } catch (e) {
+                console.log(e.message);
+                alert('Error: check inputs');
+            }
         },
         editPhotoPost: async function(formData, event) {
-            skip = 0;
-            PostTools.edit(formData)
-                .then(() => {
-                    PostTools.getPosts(skip, get).then((resp) => {
-                        Display.postsAddFormSwap(event);
-                        Display.deleteContentFromAddForm();
-                        display.getPage(resp);
-                    });
-                })
-                .catch(()=> {
-                alert('Error');
-            });
-        },
-        /* editPhotoPost: async function(formData) {
-            const utl = PostTools.PHOTO_POST_URL;
-            return await fetch(url, {method: PostTools})
-        }*/
-        /*  getPostById: function(id) {
-            return postService.get(id);
-        },
-        showMore: function() {
-            skip += 10;
-            const nextPosts = postService.getPosts(skip, get, filterConf);
-            view.showMore(nextPosts);
-        },
-        addPhotoPost: function(post) {
-            if (!user.unLog && postService.add(post, user.name)) {
+            try {
                 skip = 0;
-                view.getPosts(postService.getPosts(skip, get), true);
-                return true;
+                await PostTools.edit(formData);
+                const resp = await PostTools.getPosts(skip, get);
+                Display.postsAddFormSwap(event);
+                Display.deleteContentFromAddForm();
+                display.getPage(resp);
+            } catch (e) {
+                console.log(e.message);
+                alert('Error: check inputs');
             }
-            return false;
         },
-        removePhotoPost: function(id) {
-            if (!user.unLog && postService.remove(id)) {
-                skip = 0;
-                view.getPosts(postService.getPosts(skip, get, filterConf), false, true);
-                return true;
-            }
-            return false;
-        },
-        editPhotoPost: function(id, editedPost) {
-            if (!user.unLog && postService.edit(id, editedPost)) {
-                skip = 0;
-                view.getPosts(postService.getPosts(skip, get));
-                return true;
-            }
-            return false;
-        },
-        filterPosts: function(filterConfig = {}) {
-            skip = 0;
-            if (!isEmptyFilter(filterConfig)) {
-                Object.keys(filterConfig).forEach((key) => filterConf[key] = filterConfig[key]);
-            } else {
-                filterConf = {};
-            }
-            const result = postService.getPosts(skip, postService.getPostListLength(), filterConf);
-            view.getPosts(result.slice(skip, skip + get), false, false, result.length);
-        },
-        likePostById: function(id) {
-            if (!user.unLog && postService.like(id, user.name)) {
-                view.updatePostLikes(postService.get(id));
-                return true;
-            }
-            return false;
-        },
-        dislikePostById: function(id) {
-            if (!user.unLog && !postService.like(id, user.name)) {
-                view.updatePostLikes(postService.get(id), false);
-                return true;
-            }
-            return false;
-        },
-
-        login: function(username) {
-            user.name = username;
-            user.unLog = false;
-            view.updateUserInfo(user);
-            view.getPosts(postService.getPosts());
-        },*/
     };
 }());
