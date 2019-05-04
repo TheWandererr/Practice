@@ -24,6 +24,7 @@ public class PostListServlet extends HttpServlet {
     private static final String TAGS = "hashTags";
     private static final String SKIP = "skip";
     private static final String GET = "get";
+    private static final String CTRL_DATE = "cDate";
     private static final Gson gson = new Gson();
 
     @Override
@@ -59,9 +60,11 @@ public class PostListServlet extends HttpServlet {
         Map<String, String> filter = createFilterConf(req);
         int skip;
         int get;
+        // long ctrlDate = System.currentTimeMillis();
         try {
             skip = Integer.parseInt(req.getParameter(SKIP));
             get = Integer.parseInt(req.getParameter(GET));
+            // ctrlDate = Integer.parseInt(req.getParameter(CTRL_DATE));
         }
         catch (NumberFormatException nfe) {
             skip = 0;

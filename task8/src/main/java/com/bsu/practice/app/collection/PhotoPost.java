@@ -65,7 +65,7 @@ public class PhotoPost {
     }
 
     public void setHashTags(List<String> hashTags) {
-        this.hashTags = hashTags;
+        this.hashTags = toLowerCase(hashTags);
     }
 
     public void setPhotoLink(String photoLink) {
@@ -78,7 +78,7 @@ public class PhotoPost {
 
     public static List<String> fixTags(String tags) {
         if (tags != null) {
-            return Arrays.stream(tags.split("[,]+")).filter(tag->!tag.equals("")).collect(Collectors.toList());
+            return Arrays.stream(tags.split("[,#]+")).filter(tag->!tag.equals("")).collect(Collectors.toList());
         } else return new ArrayList<>();
     }
 
