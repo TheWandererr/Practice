@@ -1,0 +1,1 @@
+SELECT * FROM makeamoment.photo_post WHERE idUSER=1;

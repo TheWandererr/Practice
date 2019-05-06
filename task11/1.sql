@@ -1,0 +1,1 @@
+SELECT * FROM makeamoment.photo_post ORDER BY CREATION_DATE DESC;
