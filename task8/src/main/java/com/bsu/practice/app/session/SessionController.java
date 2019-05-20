@@ -26,6 +26,7 @@ public class SessionController {
     private static final String PERMISSION_DENIED = "post doesnt exist or invalid owner";
     private static final String PARAMS_REQUIRED = "{set, get} - all params are required";
     private static final String FILES_ERROR = "error while working with files";
+    private static final String DB_ERROR = "error while working with data base";
     private static final String INVALID_POST = "invalid post";
     private static final int MIN_INPUT_LENGTH = 0;
     private static Map<String, String> response = new HashMap<>();
@@ -61,6 +62,9 @@ public class SessionController {
             case HttpServletResponse.SC_SERVICE_UNAVAILABLE: {
                 out.print(createErrorResponse(AUTHORIZED, status));
                 break;
+            }
+            case HttpServletResponse.SC_BAD_GATEWAY: {
+                out.print(createErrorResponse(DB_ERROR, status));
             }
         }
         response.setStatus(status);

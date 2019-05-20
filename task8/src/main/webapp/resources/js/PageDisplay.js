@@ -60,9 +60,10 @@ class Display {
         const self = this;
         if (posts) {
             const docElement = document.getElementsByClassName(Display._PHOTOS_CLASS)[0];
-            Display.clearInnerHtml(docElement);
             self._displayedNumber = 0;
-            docElement.appendChild(await self._createPostsFragment(posts));
+            const toAppend = await self._createPostsFragment(posts);
+            Display.clearInnerHtml(docElement);
+            docElement.appendChild(toAppend);
         }
         self._onGetPageChange(add, del, totalNumber);
     }

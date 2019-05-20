@@ -1,5 +1,6 @@
 package com.bsu.practice.app.servlets;
 
+import com.bsu.practice.app.exception.NullConnectionException;
 import com.bsu.practice.app.collection.PhotoPost;
 import com.bsu.practice.app.collection.PostList;
 import com.bsu.practice.app.session.SessionController;
@@ -18,13 +19,14 @@ import javax.servlet.annotation.MultipartConfig;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 
 
 @MultipartConfig
 public class PhotoPostServlet extends HttpServlet {
 
-    private PostList postsCollection;
+    private static PostList postsCollection = new PostList();
     private User user;
     public static final int SINGLE_PART_REQUEST = 0;
     private static final int MAX_SIZE = 1024 * 1024 * 10;
@@ -41,7 +43,6 @@ public class PhotoPostServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        postsCollection = PostList.getInstance();
         user = User.getInstance();
         rawPost = new HashMap<>();
     }
@@ -52,14 +53,21 @@ public class PhotoPostServlet extends HttpServlet {
         status = processForm(req, resp);
         if (status == HttpServletResponse.SC_OK) {
             String id = rawPost.get(ID);
-            if (SessionController.isOperationAllowed(postsCollection.get(id), user, resp)) {
-                if (!postsCollection.edit(id, rawPost)) {
-                    SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
-                } else {
-                    PhotoPost reqPost = postsCollection.get(id);
-                    resp.setStatus(HttpServletResponse.SC_OK);
-                    resp.getOutputStream().print(gson.toJson(reqPost));
+            try {
+                PhotoPost target = postsCollection.getPostById(id);
+                if (SessionController.isOperationAllowed(target, user, resp)) {
+                    target = postsCollection.editPostById(id, rawPost);
+                    if (target == null) {
+                        SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                        resp.getOutputStream().print(gson.toJson(target));
+                    }
                 }
+            } catch (NullConnectionException nullE) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
+            } catch (SQLException sqlE) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
             }
         } else {
             SessionController.sendLastErrorMess(resp, status);
@@ -68,13 +76,17 @@ public class PhotoPostServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        PhotoPost target = postsCollection.get(req.getParameter(ID));
-        if (SessionController.isOperationAllowed(target, user, resp)) {
-            postsCollection.remove(target);
-            resp.setStatus(HttpServletResponse.SC_OK);
-            SessionController.sendSuccessMess(resp);
-        } else {
-            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        try {
+            PhotoPost target = postsCollection.getPostById(req.getParameter(ID));
+            if (SessionController.isOperationAllowed(target, user, resp)) {
+                target = new PhotoPost(postsCollection.deletePost(target));
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getOutputStream().println(gson.toJson(target));
+            }
+        } catch (NullConnectionException nullE) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
+        } catch (SQLException sqlE) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
         }
     }
 
@@ -85,14 +97,21 @@ public class PhotoPostServlet extends HttpServlet {
             sendExistingFile(resp, photoLink);
             return;
         }
-        PhotoPost target = postsCollection.get(req.getParameter(ID));
-        if (SessionController.hasWritePermission(user) && target!= null) {
-            String answer = gson.toJson(target);
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getOutputStream().println(answer);
-        } else {
-            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        try {
+            PhotoPost target = postsCollection.getPostById(req.getParameter(ID));
+            if (SessionController.hasWritePermission(user) && target != null) {
+                String answer = gson.toJson(target);
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getOutputStream().println(answer);
+            } else {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            }
+        } catch (NullConnectionException nullE) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
+        } catch (SQLException sqlE) {
+            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
         }
+
     }
 
     @Override
@@ -106,17 +125,24 @@ public class PhotoPostServlet extends HttpServlet {
         if (status == HttpServletResponse.SC_OK) {
             PhotoPost reqPost;
             reqPost = new PhotoPost(
+                    ID,
                     user.getUsername(),
                     rawPost.get(DESCRIPTION),
                     rawPost.get(PHOTO_LINK),
-                    PhotoPost.fixTags(rawPost.get(TAGS)));
-            if (!postsCollection.add(reqPost)) {
-                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
-                return;
+                    PhotoPost.fixTags(rawPost.get(TAGS)),
+                    new Date().getTime(),
+                    new ArrayList<>());
+            try {
+                if (postsCollection.addPost(reqPost) == null) {
+                    SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                resp.setStatus(HttpServletResponse.SC_OK);
+                String answer = gson.toJson(reqPost);
+                resp.getOutputStream().println(answer);
+            } catch (Exception nce) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
             }
-            resp.setStatus(HttpServletResponse.SC_OK);
-            String answer = gson.toJson(reqPost);
-            resp.getOutputStream().println(answer);
         } else {
             SessionController.sendLastErrorMess(resp, status);
         }
@@ -125,10 +151,6 @@ public class PhotoPostServlet extends HttpServlet {
     @Override
     public void destroy() {
         super.destroy();
-    }
-    //Не работает с PUT
-    private static boolean isMultipart(HttpServletRequest req) {
-        return ServletFileUpload.isMultipartContent(req);
     }
 
     private int processForm(HttpServletRequest req, HttpServletResponse resp) {
@@ -188,17 +210,16 @@ public class PhotoPostServlet extends HttpServlet {
     }
 
     private void sendExistingFile(HttpServletResponse resp, String photoLink) throws IOException {
-        try{
+        try {
             String path = getServletContext().getRealPath("/resources/images/");
             resp.setContentType("image/jpeg");
-            InputStream is = Files.newInputStream(Paths.get(path+photoLink));
+            InputStream is = Files.newInputStream(Paths.get(path + photoLink));
             byte[] buffer = new byte[MAX_BUFFER];
             int read;
-            while((read = is.read(buffer)) > 0) {
-                resp.getOutputStream().write(buffer,0,read);
+            while ((read = is.read(buffer)) > 0) {
+                resp.getOutputStream().write(buffer, 0, read);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

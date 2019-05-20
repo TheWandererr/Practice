@@ -1,6 +1,5 @@
-const Global = (function() {
-    // let ctrlDate = new Date().getMilliseconds();
-    // setFixDate();
+const GlobalFuncs = (function() {
+    let ctrlDate = Date.now();
     let filterConf = {};
     let display = {};
     let skip = 0;
@@ -9,19 +8,15 @@ const Global = (function() {
     const user = createUser();
     const get = 10;
     const postTools = new PostTools();
-    const pageController = new Controller(user);
+    const pageController = new Controller(user, ctrlDate);
     const posts = PostTools.getPosts(skip, Number.MAX_SAFE_INTEGER, filterConf).then((answer) => {
         display = new Display(user, answer.slice(skip, skip + get), answer.length);
         return answer;
     });
-    /* function setFixDate() {
-        const fetched = sessionStorage.getItem('sDate');
-        if (fetched) {
-            ctrlDate = Number.parseInt(fetched);
-        } else {
-            sessionStorage.setItem('sDate', ctrlDate.toString());
-        }
-    }*/
+    function setSessionDate() {
+        ctrlDate = new Date().getTime();
+        Controller.CTRL_DATE = ctrlDate;
+    }
     function isEmptyFilter(object) {
         return JSON.stringify(object) === '{}';
     }
@@ -54,8 +49,9 @@ const Global = (function() {
             display.updateUserInfo(user);
         },
         afterLog: async function() {
+            setSessionDate();
             try {
-                const resp = await PostTools.getPosts(skip, get);
+                const resp = await PostTools.getPosts(skip, get, {dateFrom: 0, dateTo: ctrlDate});
                 display.getPage(resp);
             } catch (e) {
                 console.log(e.message);
@@ -70,7 +66,7 @@ const Global = (function() {
         logout: async function() {
             try {
                 await fetch('/logout', {method: 'post'});
-                Global.processUser();
+                GlobalFuncs.processUser();
                 display.getPage();
             } catch (e) {
                 console.log(e.message);
@@ -79,10 +75,12 @@ const Global = (function() {
         filterPosts: async function(filterConfig = {}) {
             try {
                 skip = 0;
+                filterConf = {};
                 if (!isEmptyFilter(filterConfig)) {
                     Object.keys(filterConfig).forEach((key) => filterConf[key] = filterConfig[key]);
                 } else {
-                    filterConf = {};
+                    filterConf.dateTo = ctrlDate;
+                    filterConf.dateFrom = Controller.START;
                 }
                 const resp = await PostTools.getPosts(skip, Number.MAX_SAFE_INTEGER, filterConf);
                 display.getPage(resp.slice(skip, skip + get), false, false, resp.length);
@@ -131,7 +129,8 @@ const Global = (function() {
             try {
                 skip = 0;
                 await PostTools.add(formData);
-                const resp = await PostTools.getPosts(skip, get);
+                setSessionDate();
+                const resp = await PostTools.getPosts(skip, get, {dateFrom: 0, dateTo: ctrlDate});
                 Display.postsAddFormSwap(event);
                 Display.deleteContentFromAddForm();
                 display.getPage(resp);
@@ -144,7 +143,8 @@ const Global = (function() {
             try {
                 skip = 0;
                 await PostTools.edit(formData);
-                const resp = await PostTools.getPosts(skip, get);
+                setSessionDate();
+                const resp = await PostTools.getPosts(skip, get, {dateFrom: 0, dateTo: ctrlDate});
                 Display.postsAddFormSwap(event);
                 Display.deleteContentFromAddForm();
                 display.getPage(resp);
