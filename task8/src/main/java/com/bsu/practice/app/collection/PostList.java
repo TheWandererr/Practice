@@ -1,196 +1,130 @@
 package com.bsu.practice.app.collection;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class PostList implements ValidateHelper {
-    private static final String AUTHOR = "author";
-    private static final String DATE_TO = "dateTo";
-    private static final String DATE_FROM = "dateFrom";
+import com.bsu.practice.app.exception.NullConnectionException;
+import com.bsu.practice.app.session.DBConnection;
+import com.bsu.practice.app.session.SQLExecutor;
+
+import java.sql.*;
+import java.util.*;
+
+public class PostList implements ValidateHelper, PostDao {
     private static final String HASHTAGS = "hashTags";
     private static final String PHOTO_LINK = "photoLink";
     private static final String DESCRIPTION = "description";
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
-    private List<PhotoPost> photoPosts;
-    private static PostList instance;
-    //private static final String JS_DATE_STANDARD_FORMAT = "EE MMM d y H:m:s 'GMT'z";
-    //private static final String JAVA_DATE_STANDARD_FORMAT = "EEE MMM dd HH:mm:ss z yyyy";
+    private static final int DOESNT_EXIST = -1;
+    private static final String NULL_CONNECTION = "Connection to base failed. It's null";
+    private static Connection con;
 
-    private PostList() {
-        photoPosts = new ArrayList<>();
+    public PostList() {
+        con = DBConnection.getConnection();
     }
 
-    public static PostList getInstance() {
-        if (instance == null) {
-            instance = new PostList();
-        }
-        return instance;
-    }
-
-    private void isSimilarAuthor(List<PhotoPost> toFilter, String author) {
-        Iterator<PhotoPost> it = toFilter.iterator();
-        PhotoPost elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (!elem.getAuthor().toLowerCase().contains(author.toLowerCase())) {
-                it.remove();
-            }
+    @Override
+    public List<PhotoPost> getAll(int skip, int get, Map<String, String> filterConfig) throws NullConnectionException, SQLException {
+        if (con == null) {
+            throw new NullConnectionException(NULL_CONNECTION);
+        } else {
+            return SQLExecutor.getAll(filterConfig, con, skip, get);
         }
     }
 
-    private void isAfterDate(List<PhotoPost> toFilter, Date dateFrom) {
-        Iterator<PhotoPost> it = toFilter.iterator();
-        PhotoPost elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (elem.getCreatedAt().compareTo(dateFrom) <= 0) {
-                it.remove();
-            }
-        }
-    }
-
-    private void isBeforeDate(List<PhotoPost> toFilter, Date dateTo) {
-        Iterator<PhotoPost> it = toFilter.iterator();
-        PhotoPost elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (elem.getCreatedAt().compareTo(dateTo) >= 0) {
-                it.remove();
-            }
-        }
-    }
-
-    private void isContainTags(List<PhotoPost> toFilter, List<String> tags) {
-        Iterator<PhotoPost> it = toFilter.iterator();
-        PhotoPost elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (!isContainTag(elem.getHashTags(), tags)) {
-                it.remove();
-            }
-        }
-    }
-
-    private boolean isContainTag(List<String> where, List<String> what) {
-        if (where.size() == 0) {
-            return false;
-        }
-        Stream<String> whereStream = where.stream();
-        for (String tag : what) {
-            if (whereStream.anyMatch(elem -> elem.contains(tag))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public List<PhotoPost> getPage(int skip, int get, Map<String, String> filterConfig) {
-        List<PhotoPost> filteredPosts = new ArrayList<>(photoPosts);
-        String key;
-        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
-        for (Map.Entry<String, String> entry : filterConfig.entrySet()) {
-            key = entry.getKey();
-            if (key.equals(AUTHOR)) {
-                isSimilarAuthor(filteredPosts, entry.getValue());
-            }
-            if (key.equals(DATE_FROM)) {
-                try {
-                    isAfterDate(filteredPosts, dateFormat.parse(entry.getValue()));
-                } catch (ParseException e) {
-                    return new ArrayList<>();
-                }
-            }
-            if (key.equals(DATE_TO)) {
-                try {
-                    isBeforeDate(filteredPosts, dateFormat.parse(entry.getValue()));
-                } catch (ParseException e) {
-                    return new ArrayList<>();
-                }
-            }
-            if (key.equals(HASHTAGS)) {
-                isContainTags(filteredPosts, Arrays.asList(entry.getValue().split("[,]+")));
-            }
-        }
-        int firstIndex = 0;
-        int lastIndex = 0;
-        if (filteredPosts.size() != 0)  {
-            firstIndex = skip > filteredPosts.size() ? filteredPosts.size() : skip;
-            lastIndex = skip + get > filteredPosts.size() ? filteredPosts.size() : skip + get;
-        }
-        System.out.println("start = " + firstIndex);
-        System.out.println("finish = " + lastIndex);
-        return filteredPosts.stream().sorted(new Comparator<PhotoPost>() {
-            @Override
-            public int compare(PhotoPost o1, PhotoPost o2) {
-                return o2.getCreatedAt().compareTo(o1.getCreatedAt());
-            }
-        }).collect(Collectors.toList()).subList(firstIndex, lastIndex);
-    }
-
-    public boolean add(PhotoPost post) {
+    @Override
+    public PhotoPost addPost(PhotoPost post) throws NullConnectionException, SQLException {
         if (validate(post)) {
-            this.photoPosts.add(post);
-            return true;
+            if (con == null) {
+                throw new NullConnectionException(NULL_CONNECTION);
+            } else {
+                int userID = SQLExecutor.fetchUserId(post.getAuthor(), con);
+                if (userID != DOESNT_EXIST) {
+                    if (SQLExecutor.insertPost(post, con, userID)) {
+                        return post;
+                    }
+                }
+            }
         }
-        return false;
+        return null;
     }
 
-    public void remove(PhotoPost toDelete) {
-        photoPosts.remove(toDelete);
-    }
-
-    public boolean like(String id, String username) {
-        PhotoPost target = get(id);
-        if (target == null) {
-            return false;
-        }
-        List<String> likes = target.getLikes();
-        int index = likes.indexOf(username);
-        if (index == -1) {
-            likes.add(username);
-            target.setLikes(likes);
+    @Override
+    public PhotoPost getPostById(String id) throws NullConnectionException, SQLException {
+        if (con == null) {
+            throw new NullConnectionException(NULL_CONNECTION);
         } else {
-            likes.remove(username);
-            target.setLikes(likes);
+            return SQLExecutor.fetchPost(id, con);
         }
-        return true;
     }
 
-    public PhotoPost get(String id) {
-        List<PhotoPost> out = this.photoPosts.stream().filter(post -> post.getId().equals(id)).collect(Collectors.toList());
-        if (out.size() > 0) {
-            return out.get(0);
+    @Override
+    public PhotoPost deletePost(PhotoPost toDelete) throws NullConnectionException, SQLException {
+        if (con == null) {
+            throw new NullConnectionException(NULL_CONNECTION);
         } else {
+            SQLExecutor.deletePost(toDelete.getId(), con);
+        }
+        return toDelete;
+    }
+
+    @Override
+    public PhotoPost editPostById(String id, Map<String, String> edited) throws NullConnectionException, SQLException {
+        if (con == null) {
+            throw new NullConnectionException(NULL_CONNECTION);
+        } else {
+            PhotoPost tmp = SQLExecutor.fetchPost(id, con);
+            if (tmp == null) {
+                return null;
+            }
+            if (edited.containsKey(DESCRIPTION)) {
+                tmp.setDescription(edited.get(DESCRIPTION));
+            }
+            if (edited.containsKey(HASHTAGS)) {
+                tmp.setHashTags(PhotoPost.fixTags(edited.get(HASHTAGS)));
+            }
+            if (edited.containsKey(PHOTO_LINK)) {
+                tmp.setPhotoLink(edited.get(PHOTO_LINK));
+            }
+            /*String key;
+            for (Map.Entry<String, String> entry : edited.entrySet()) {
+                key = entry.getKey();
+                if (key.equals(DESCRIPTION)) {
+                    tmp.setDescription(entry.getValue());
+                }
+                if (key.equals(HASHTAGS)) {
+                    tmp.setHashTags(PhotoPost.fixTags(entry.getValue()));
+                }
+                if (key.equals(PHOTO_LINK)) {
+                    tmp.setPhotoLink(entry.getValue());
+                }
+            }*/
+            if (validate(tmp)) {
+                SQLExecutor.editPost(tmp, con);
+                return tmp;
+            }
             return null;
         }
     }
 
-    public boolean edit(String id, Map<String, String> edited) {
-        PhotoPost currentPost = get(id);
-        PhotoPost tmp = new PhotoPost(currentPost);
-        String key;
-        for (Map.Entry<String, String> entry : edited.entrySet()) {
-            key = entry.getKey();
-            if (key.equals(DESCRIPTION)) {
-                tmp.setDescription(entry.getValue());
+    @Override
+    public PhotoPost like(String id, String userName) throws NullConnectionException, SQLException {
+        if (con == null) {
+            throw new NullConnectionException(NULL_CONNECTION);
+        } else {
+            PhotoPost target = SQLExecutor.fetchPost(id, con);
+            if (target == null) {
+                return null;
             }
-            if (key.equals(HASHTAGS)) {
-                tmp.setHashTags(PhotoPost.fixTags(entry.getValue()));
+            List<String> likes = target.getLikes();
+            int index = likes.indexOf(userName);
+            if (index == DOESNT_EXIST) {
+                likes.add(userName);
+            } else {
+                likes.remove(userName);
             }
-            if (key.equals(PHOTO_LINK)) {
-                tmp.setPhotoLink(entry.getValue());
-            }
+            String condition = index == DOESNT_EXIST ? SQLExecutor.BD_LIKE_INSERT_POST_LIKE : SQLExecutor.BD_LIKE_DELETE_POST_LIKE;
+            SQLExecutor.updatePostLike(target, con, SQLExecutor.fetchUserId(userName, con), condition);
+            target.setLikes(likes);
+            return target;
         }
-        if (validate(tmp)) {
-            int index = this.photoPosts.indexOf(currentPost);
-            photoPosts.remove(index);
-            photoPosts.add(tmp);
-            return true;
-        }
-        return false;
     }
 
     private boolean validate(PhotoPost post) {

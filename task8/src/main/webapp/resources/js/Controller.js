@@ -1,5 +1,6 @@
 class Controller {
     static ID = 'id';
+    static START = 0;
     static _TAPE_CLASS = 'main-col';
     static _FILTER_CLASS = 'filter';
     static _FILTER_DATE_INPUT_CLASS = 'filter-date-input';
@@ -24,8 +25,9 @@ class Controller {
     static _FILTER_HASHTAGS_FIELD = 'hashTags';
     static _TYPING_TIMER = 0;
     static _DONE_TYPING_INTERVAL = 1300;
-    constructor(user) {
+    constructor(user, ctrlDate) {
         this._user = user;
+        Controller.CTRL_DATE = ctrlDate;
         Controller._FILE = null;
         Controller._createPostButtonsHandler();
         Controller._createFilterHandle();
@@ -48,7 +50,7 @@ class Controller {
         params.hashTags = Display._deleteRedundantFromTags(params.hashTags);
         const fixedFilter = {};
         Object.keys(params).filter((item) => params[item].toString().length).forEach((field) => {
-            fixedFilter[field] = params[field];
+            fixedFilter[field] = params[field].toString().trim();
         });
         return fixedFilter;
     }
@@ -65,10 +67,22 @@ class Controller {
         return formData;
     }
     static _createFilterConfig(formElements) {
+        const author = formElements.namedItem(Controller._FILTER_AUTHOR_FIELD).value;
+        let dateFrom = formElements.namedItem(Controller._FILTER_DATE_FROM_FIELD).value;
+        dateFrom = dateFrom ? new Date(dateFrom).getTime() : Controller.START;
+        let dateTo = formElements.namedItem(Controller._FILTER_DATE_TO_FIELD).value;
+        if (!dateTo) {
+            dateTo = Controller.CTRL_DATE;
+        } else {
+            dateTo = new Date(dateTo).getTime();
+            if (dateTo > Controller.CTRL_DATE) {
+                dateTo = Controller.CTRL_DATE;
+            }
+        }
         return {
-            author: formElements.namedItem(Controller._FILTER_AUTHOR_FIELD).value,
-            dateFrom: formElements.namedItem(Controller._FILTER_DATE_FROM_FIELD).value,
-            dateTo: formElements.namedItem(Controller._FILTER_DATE_TO_FIELD).value,
+            author: author,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
             hashTags: formElements.namedItem(Controller._FILTER_HASHTAGS_FIELD).value.trim().split(/[.,;# ]/),
         };
     }
@@ -98,14 +112,14 @@ class Controller {
             clearTimeout(Controller._TYPING_TIMER);
             Controller._TYPING_TIMER = setTimeout(function() {
                 const params = Controller._createFilterConfig(filter.elements);
-                Global.filterPosts(Controller._fixFilterConfig(params));
+                GlobalFuncs.filterPosts(Controller._fixFilterConfig(params));
             }, Controller._DONE_TYPING_INTERVAL);
         });
         filter.addEventListener('click', Controller._handleFilterClearOn);
         filterDateInput.addEventListener('change', function() {
             const params = Controller._createFilterConfig(filter.elements);
             setTimeout(function() {
-                Global.filterPosts(Controller._fixFilterConfig(params));
+                GlobalFuncs.filterPosts(Controller._fixFilterConfig(params));
             }, Controller._DONE_TYPING_INTERVAL);
         });
     }
@@ -154,19 +168,19 @@ class Controller {
             return;
         }
         if (event.target.className === Display._LIKE_BUTTON_CLASS) {
-            Global.likePostById(event.target.parentElement.id);
+            GlobalFuncs.likePostById(event.target.parentElement.id);
         }
         if (event.target.className === Display._DELETE_BUTTON_CLASS) {
-            Global.removePhotoPost(event.target.parentElement.id);
+            GlobalFuncs.removePhotoPost(event.target.parentElement.id);
         }
         if (event.target.className === Display._CHANGE_BUTTON_CLASS) {
             Display.postsAddFormSwap(event);
         }
         if (event.target.className === Display._LIKED_BUTTON_CLASS) {
-            Global.dislikePostById(event.target.parentElement.id);
+            GlobalFuncs.dislikePostById(event.target.parentElement.id);
         }
         if (event.target.className === Display._MORE_BUTTON_CLASS) {
-            Global.showMore();
+            GlobalFuncs.showMore();
         }
     }
     static _handleFilterClearOn(event) {
@@ -176,10 +190,10 @@ class Controller {
         if (event.target.className === Controller._CLEAR_BUTTON_CLASS) {
             Display._deleteInputValues(event.currentTarget);
         }
-        Global.filterPosts();
+        GlobalFuncs.filterPosts();
     }
     static async _handleOnClickLogout(event) {
-        await Global.logout(event);
+        await GlobalFuncs.logout(event);
         if (!Display.arePostsHidden()) {
             Display.postsAuthSwap(event, true);
         } else {
@@ -196,12 +210,12 @@ class Controller {
         req.pass = inputs.namedItem(Controller._FORM_AUTH_PASS).value;
         const data = JSON.stringify(req);
         try {
-            await Global.login(data);
+            await GlobalFuncs.login(data);
             error.innerText = '*Required fields';
-            Global.processUser(req);
+            GlobalFuncs.processUser(req);
             Display._deleteInputValues(form);
             Display.postsAuthSwap(event, false);
-            Global.afterLog();
+            GlobalFuncs.afterLog();
         } catch (e) {
             error.innerText = 'Check entered data and try again';
             console.log(e.message);
@@ -217,10 +231,10 @@ class Controller {
         const fields = document.forms.addChangeForm.elements;
         const formData = Controller._createRequestForm(fields);
         if (!postId) {
-            Global.addPhotoPost(formData, event);
+            GlobalFuncs.addPhotoPost(formData, event);
         } else {
             formData.append(Controller.ID, postId);
-            Global.editPhotoPost(formData, event);
+            GlobalFuncs.editPhotoPost(formData, event);
         }
     }
 }

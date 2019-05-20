@@ -1,5 +1,7 @@
 package com.bsu.practice.app.servlets;
 
+import com.bsu.practice.app.exception.NullConnectionException;
+import com.bsu.practice.app.collection.PhotoPost;
 import com.bsu.practice.app.collection.PostList;
 import com.bsu.practice.app.session.SessionController;
 import com.bsu.practice.app.user.User;
@@ -9,16 +11,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class LikePostServlet extends HttpServlet {
 
     private User user;
-    private PostList postList;
+    private static PostList postsCollection = new PostList();
 
     @Override
     public void init(ServletConfig config) {
         user = User.getInstance();
-        postList = PostList.getInstance();
     }
 
     @Override
@@ -29,11 +31,18 @@ public class LikePostServlet extends HttpServlet {
             String url = req.getRequestURL().toString();
             int charLen = 1;
             String id = url.substring(url.lastIndexOf("/") + charLen);
-            if (postList.like(id, user.getUsername())) {
+            try {
+                PhotoPost target = postsCollection.like(id, user.getUsername());
+                if (target == null) {
+                    SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                    return;
+                }
                 SessionController.sendSuccessMess(resp);
                 resp.setStatus(HttpServletResponse.SC_OK);
-            } else {
-                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            } catch (NullConnectionException nullE) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
+            } catch (SQLException sqlE) {
+                SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_GATEWAY);
             }
         }
     }

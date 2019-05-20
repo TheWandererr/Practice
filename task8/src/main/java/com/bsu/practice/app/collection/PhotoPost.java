@@ -8,15 +8,15 @@ public class PhotoPost {
     private String description;
     private String photoLink;
     private String author;
-    private Date createdAt;
+    private long createdAt;
     private List<String> hashTags;
     private List<String> likes;
 
-    public PhotoPost(String author, String desc, String link, List<String> hashTags) {
-        this.id = UUID.randomUUID().toString();
+    public PhotoPost(String id, String author, String desc, String link, List<String> hashTags, long date, List<String> likes) {
+        this.id = id;
         this.author = author;
-        this.createdAt = new Date();
-        this.likes = new ArrayList<>();
+        this.createdAt = date;
+        this.likes = likes;
         this.hashTags = toLowerCase(hashTags);
         this.photoLink = link;
         this.description = desc;
@@ -32,7 +32,7 @@ public class PhotoPost {
         this.likes = post.likes;
     }
 
-    public Date getCreatedAt() {
+    public long getCreatedAt() {
         return createdAt;
     }
 
@@ -64,6 +64,10 @@ public class PhotoPost {
         this.description = description;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void setHashTags(List<String> hashTags) {
         this.hashTags = toLowerCase(hashTags);
     }
@@ -78,7 +82,7 @@ public class PhotoPost {
 
     public static List<String> fixTags(String tags) {
         if (tags != null) {
-            return Arrays.stream(tags.split("[,#]+")).filter(tag->!tag.equals("")).collect(Collectors.toList());
+            return Arrays.stream(tags.split("[,# ]+")).filter(tag->!tag.equals("")).collect(Collectors.toList());
         } else return new ArrayList<>();
     }
 
