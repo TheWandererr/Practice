@@ -28,7 +28,7 @@ class Controller {
     constructor(user, ctrlDate) {
         this._user = user;
         Controller.CTRL_DATE = ctrlDate;
-        Controller._FILE = null;
+        Controller.UPLOADED_IMAGE = null;
         Controller._createPostButtonsHandler();
         Controller._createFilterHandle();
         Controller._createLogOutHandler();
@@ -44,7 +44,7 @@ class Controller {
         Display.previewFile(file);
     }
     static _setFile(file) {
-        Controller._FILE = file;
+        Controller.UPLOADED_IMAGE = file;
     }
     static _fixFilterConfig(params) {
         params.hashTags = Display._deleteRedundantFromTags(params.hashTags);
@@ -56,11 +56,8 @@ class Controller {
     }
     static _createRequestForm(fields) {
         const formData = new FormData();
-        let file = fields.namedItem(PostTools.LINK).files[0];
-        if (!file) {
-            file = Controller._FILE;
-        }
-        formData.append(PostTools.LINK, file);
+        // let file = fields.namedItem(PostTools.LINK).files[0];
+        formData.append(PostTools.LINK, Controller._FILE);
         formData.append(PostTools.DESCRIPTION, fields.namedItem(PostTools.DESCRIPTION).value);
         formData.append(PostTools.TAGS, fields.namedItem(
             PostTools.TAGS).value);
