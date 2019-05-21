@@ -201,7 +201,7 @@ class Display {
         where.value = '';
     }
     static _deleteFile() {
-        Controller._FILE = null;
+        Controller.UPLOADED_IMAGE = null;
     }
     static _deleteImage() {
         const dropArea = document.getElementById(Display._IMAGE_ZONE_ID);
