@@ -5,31 +5,31 @@
          version="4.0">
     <servlet>
         <servlet-name>AppRunningServlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.AppRunningServlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.AppRunningServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>JavaWebApp</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.JavaWebApp</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.JavaWebAppServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>getServlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.getServlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.GetServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>checkServlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.checkServlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.CheckServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>pageServlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.pageServlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.PageServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>test1Servlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.test1Servlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.Test1Servlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>test2Servlet</servlet-name>
-        <servlet-class>main.com.bsu.exadel.practice.test2Servlet</servlet-class>
+        <servlet-class>main.com.bsu.exadel.practice.servlets.Test2Servlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>test2Servlet</servlet-name>
@@ -61,7 +61,7 @@
     </servlet-mapping>
     <filter>
         <filter-name>timeFilter</filter-name>
-        <filter-class>main.com.bsu.exadel.practice.TimeMeasurementFilter</filter-class>
+        <filter-class>main.com.bsu.exadel.practice.filter.TimeMeasurementFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>timeFilter</filter-name>

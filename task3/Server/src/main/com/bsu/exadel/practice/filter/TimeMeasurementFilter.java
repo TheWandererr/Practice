@@ -1,9 +1,8 @@
-package main.com.bsu.exadel.practice;
+package main.com.bsu.exadel.practice.filter;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-
 
 public class TimeMeasurementFilter implements Filter {
 
