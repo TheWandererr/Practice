@@ -48,7 +48,7 @@ const GlobalFuncs = (function() {
             }
             display.updateUserInfo(user);
         },
-        afterLog: async function() {
+        toTapeRedirect: async function() {
             setSessionDate();
             try {
                 const resp = await PostTools.getPosts(skip, get, {dateFrom: 0, dateTo: ctrlDate});
@@ -65,7 +65,7 @@ const GlobalFuncs = (function() {
         },
         logout: async function() {
             try {
-                await fetch('/logout', {method: 'post'});
+                await fetch('/logout', {method: 'get'});
                 GlobalFuncs.processUser();
                 display.getPage();
             } catch (e) {
@@ -133,7 +133,7 @@ const GlobalFuncs = (function() {
                 const resp = await PostTools.getPosts(skip, get, {dateFrom: 0, dateTo: ctrlDate});
                 Display.postsAddFormSwap(event);
                 Display.deleteContentFromAddForm();
-                display.getPage(resp);
+                display.getPage(resp, true, false);
             } catch (e) {
                 console.log(e.message);
                 alert('Error: check inputs');

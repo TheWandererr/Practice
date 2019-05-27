@@ -34,6 +34,7 @@ public class SQLExecutor {
                     "FROM makeamoment.photo_post LEFT JOIN makeamoment.tags ON makeamoment.photo_post.idPHOTO_POST = makeamoment.tags.idPHOTO_POST\n" +
                     "INNER JOIN makeamoment.user ON makeamoment.photo_post.idUSER = makeamoment.user.idUSER" +
                     " WHERE NAME LIKE ? AND CREATION_DATE BETWEEN ? AND ?";
+    private static final String BD_USER_GET_PASS = "SELECT PASS FROM makeamoment.user WHERE NAME = ?";
     private static final String AUTHOR = "author";
     private static final String DATE_TO = "dateTo";
     private static final String DATE_FROM = "dateFrom";
@@ -53,6 +54,18 @@ public class SQLExecutor {
     private static final int FOURTH_KEY = 4;
     private static final int FIFTH_KEY = 5;
     private static final int EMPTY = 0;
+
+    public static String fetchUserPass(String username, Connection con) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(BD_USER_GET_PASS)) {
+            ps.setString(FIRST_KEY, username);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString(FIRST_KEY);
+            } else {
+                return null;
+            }
+        }
+    }
 
     public static List<PhotoPost> getAll(Map<String, String> params, Connection con, int skip, int get) throws SQLException {
         List<String> postsID = fetchAllPostsID(params, con, skip, get);

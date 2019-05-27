@@ -57,7 +57,7 @@ class Controller {
     static _createRequestForm(fields) {
         const formData = new FormData();
         // let file = fields.namedItem(PostTools.LINK).files[0];
-        formData.append(PostTools.LINK, Controller._FILE);
+        formData.append(PostTools.LINK, Controller.UPLOADED_IMAGE);
         formData.append(PostTools.DESCRIPTION, fields.namedItem(PostTools.DESCRIPTION).value);
         formData.append(PostTools.TAGS, fields.namedItem(
             PostTools.TAGS).value);
@@ -185,7 +185,7 @@ class Controller {
             return;
         }
         if (event.target.className === Controller._CLEAR_BUTTON_CLASS) {
-            Display._deleteInputValues(event.currentTarget);
+            Display.deleteInputValues(event.currentTarget);
         }
         GlobalFuncs.filterPosts();
     }
@@ -204,15 +204,15 @@ class Controller {
         const error = form.querySelector(`.${Controller._ERROR_PARAGRAPH_CLASS}`);
         const req = {};
         req.username = inputs.namedItem(Controller._FORM_AUTH_USERNAME).value;
-        req.pass = inputs.namedItem(Controller._FORM_AUTH_PASS).value;
+        req.pass = btoa(inputs.namedItem(Controller._FORM_AUTH_PASS).value);
         const data = JSON.stringify(req);
         try {
             await GlobalFuncs.login(data);
             error.innerText = '*Required fields';
             GlobalFuncs.processUser(req);
-            Display._deleteInputValues(form);
+            Display.deleteInputValues(form);
             Display.postsAuthSwap(event, false);
-            GlobalFuncs.afterLog();
+            GlobalFuncs.toTapeRedirect();
         } catch (e) {
             error.innerText = 'Check entered data and try again';
             console.log(e.message);
@@ -220,6 +220,8 @@ class Controller {
     }
     static _handleToTape(event) {
         Display.postsAuthSwap(event, false);
+        Display.deleteInputValues(document.getElementsByClassName(Controller._FILTER_CLASS)[0]);
+        GlobalFuncs.toTapeRedirect();
     }
     static _handleFormAdd(event) {
         event.preventDefault();
