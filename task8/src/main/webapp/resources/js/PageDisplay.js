@@ -97,9 +97,6 @@ class Display {
         });
         return `${year}.${fixedValues[0]}.${fixedValues[1]} ${fixedValues[2]}:${fixedValues[3]}`;
     }
-    static clearInnerText(htmlElement) {
-        htmlElement.innerText = '';
-    }
     static clearInnerHtml(htmlElement) {
         htmlElement.innerHTML = '';
     }
@@ -136,6 +133,11 @@ class Display {
         Display._deleteDescriptionContent();
         Display._deleteHashTagsContent();
         Display._deletePostIdFromAdd();
+    }
+    static deleteInputValues(fragment) {
+        Array.from(fragment.querySelectorAll('input')).forEach((item) => {
+            item.value = '';
+        });
     }
     static _makeChangesToAddForm(hideAdd) {
         Display._changeAddFormDisplay(hideAdd);
@@ -184,11 +186,6 @@ class Display {
             }
         });
         return res;
-    }
-    static _deleteInputValues(fragment) {
-        Array.from(fragment.querySelectorAll('input')).forEach((item) => {
-            item.value = '';
-        });
     }
     static _deletePostIdFromAdd() {
         const postId = document.querySelector(`.${Controller._FORM_FIELDS_CLASS}`);

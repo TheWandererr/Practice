@@ -1,7 +1,6 @@
 class PostTools {
     static OK = 200;
     static PHOTO_POST_URL = '/photo-post?';
-    static CTRL_DATE = 'cDate';
     static POST = 'post';
     static PUT = 'put';
     static _SKIP = 'skip';
@@ -18,7 +17,11 @@ class PostTools {
         throw new Error(reason);
     }
     static async onSuccess(resp) {
-        return await resp.json();
+        try {
+            return await resp.json();
+        } catch (e) {
+            return {status: PostTools.OK};
+        }
     }
     static async getPosts(skip=0, get=10, filterConfig={}) {
         let url = this._PHOTO_POSTS_URL;

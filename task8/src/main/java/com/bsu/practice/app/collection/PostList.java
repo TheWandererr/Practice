@@ -83,19 +83,6 @@ public class PostList implements ValidateHelper, PostDao {
             if (edited.containsKey(PHOTO_LINK)) {
                 tmp.setPhotoLink(edited.get(PHOTO_LINK));
             }
-            /*String key;
-            for (Map.Entry<String, String> entry : edited.entrySet()) {
-                key = entry.getKey();
-                if (key.equals(DESCRIPTION)) {
-                    tmp.setDescription(entry.getValue());
-                }
-                if (key.equals(HASHTAGS)) {
-                    tmp.setHashTags(PhotoPost.fixTags(entry.getValue()));
-                }
-                if (key.equals(PHOTO_LINK)) {
-                    tmp.setPhotoLink(entry.getValue());
-                }
-            }*/
             if (validate(tmp)) {
                 SQLExecutor.editPost(tmp, con);
                 return tmp;

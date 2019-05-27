@@ -4,7 +4,6 @@ import com.bsu.practice.app.exception.NullConnectionException;
 import com.bsu.practice.app.collection.PhotoPost;
 import com.bsu.practice.app.collection.PostList;
 import com.bsu.practice.app.session.SessionController;
-import com.bsu.practice.app.user.User;
 import com.google.gson.Gson;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -27,7 +26,6 @@ import java.util.*;
 public class PhotoPostServlet extends HttpServlet {
 
     private static PostList postsCollection = new PostList();
-    private User user;
     public static final int SINGLE_PART_REQUEST = 0;
     private static final int MAX_SIZE = 1024 * 1024 * 10;
     private static final int MAX_BUFFER = 1024 * 5;
@@ -35,6 +33,7 @@ public class PhotoPostServlet extends HttpServlet {
     private static final String PHOTO_LINK = "photoLink";
     private static final String DESCRIPTION = "description";
     private static final String TAGS = "hashTags";
+    private static final String USERNAME = "username";
     private static final Gson gson = new Gson();
     private Map<String, String> rawPost;
     private int status;
@@ -43,7 +42,6 @@ public class PhotoPostServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        user = User.getInstance();
         rawPost = new HashMap<>();
     }
 
@@ -55,7 +53,7 @@ public class PhotoPostServlet extends HttpServlet {
             String id = rawPost.get(ID);
             try {
                 PhotoPost target = postsCollection.getPostById(id);
-                if (SessionController.isOperationAllowed(target, user, resp)) {
+                if (SessionController.isOperationAllowed(target, resp, req.getSession().getAttribute(USERNAME).toString())) {
                     target = postsCollection.editPostById(id, rawPost);
                     if (target == null) {
                         SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_BAD_REQUEST);
@@ -78,7 +76,7 @@ public class PhotoPostServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             PhotoPost target = postsCollection.getPostById(req.getParameter(ID));
-            if (SessionController.isOperationAllowed(target, user, resp)) {
+            if (SessionController.isOperationAllowed(target, resp, req.getSession().getAttribute(USERNAME).toString())) {
                 target = new PhotoPost(postsCollection.deletePost(target));
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getOutputStream().println(gson.toJson(target));
@@ -99,7 +97,7 @@ public class PhotoPostServlet extends HttpServlet {
         }
         try {
             PhotoPost target = postsCollection.getPostById(req.getParameter(ID));
-            if (SessionController.hasWritePermission(user) && target != null) {
+            if (target != null) {
                 String answer = gson.toJson(target);
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getOutputStream().println(answer);
@@ -116,17 +114,13 @@ public class PhotoPostServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!SessionController.hasWritePermission(user)) {
-            SessionController.sendLastErrorMess(resp, HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
         rawPost.clear();
         status = processForm(req, resp);
         if (status == HttpServletResponse.SC_OK) {
             PhotoPost reqPost;
             reqPost = new PhotoPost(
                     ID,
-                    user.getUsername(),
+                    req.getSession().getAttribute(USERNAME).toString(),
                     rawPost.get(DESCRIPTION),
                     rawPost.get(PHOTO_LINK),
                     PhotoPost.fixTags(rawPost.get(TAGS)),
@@ -168,7 +162,7 @@ public class PhotoPostServlet extends HttpServlet {
         } catch (Exception e) {
             return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         }
-        return resp.getStatus();
+        return HttpServletResponse.SC_OK;
     }
 
     private DiskFileItemFactory createRepository() {

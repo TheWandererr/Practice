@@ -291,6 +291,12 @@ ul {
     transition: 0.3s;
     color: #35424a;
 }
+.clear-button, .add-submit-btn, .change-button, .enter-button {
+    display: inline;
+}
+.more-button, .add-button, #exit {
+    display: none;
+}
 .header {
     z-index: 10;
     position: sticky;
